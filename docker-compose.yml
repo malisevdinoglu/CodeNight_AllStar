@@ -124,6 +124,7 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET}
     ports:
       - "5001:8080"
     depends_on:
@@ -219,6 +220,7 @@ services:
     container_name: campaigncell-gateway
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      Jwt__Secret: ${JWT_SECRET}
     ports:
       - "8080:8080"
     depends_on:
