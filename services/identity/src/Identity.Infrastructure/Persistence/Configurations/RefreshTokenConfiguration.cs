@@ -12,7 +12,10 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         builder.ToTable("refresh_tokens");
 
         builder.HasKey(t => t.Id);
-        builder.Property(t => t.Id).ValueGeneratedOnAdd();
+        // Id domain'de client-side uretilir (RefreshToken.Issue → Guid.NewGuid()). ValueGeneratedOnAdd
+        // olsaydi EF, dolu Guid'li yeni token'i (izlenen user'in koleksiyonuna eklenince) "var olan"
+        // sanip UPDATE atardi → 0 satir → login'de DbUpdateConcurrencyException. Client-gen = ValueGeneratedNever.
+        builder.Property(t => t.Id).ValueGeneratedNever();
 
         builder.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();
         builder.Property(t => t.CreatedByIp).HasMaxLength(45);

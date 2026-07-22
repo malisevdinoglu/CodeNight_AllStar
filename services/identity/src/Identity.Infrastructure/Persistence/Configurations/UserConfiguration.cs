@@ -13,7 +13,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("users");
 
         builder.HasKey(u => u.Id);
-        builder.Property(u => u.Id).ValueGeneratedOnAdd();
+        builder.Property(u => u.Id).ValueGeneratedNever(); // Id domain'de client-side uretilir (User.Create*)
 
         builder.Property(u => u.FirstName).HasMaxLength(60).IsRequired();
         builder.Property(u => u.LastName).HasMaxLength(60).IsRequired();

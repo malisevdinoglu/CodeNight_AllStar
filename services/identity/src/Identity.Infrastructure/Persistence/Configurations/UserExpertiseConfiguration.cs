@@ -12,7 +12,7 @@ public sealed class UserExpertiseConfiguration : IEntityTypeConfiguration<UserEx
         builder.ToTable("user_expertises");
 
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.Id).ValueGeneratedNever(); // Id domain'de client-side uretilir (UserExpertise.Create)
 
         builder.Property(e => e.SegmentType)
             .HasConversion<string>()
