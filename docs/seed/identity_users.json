@@ -1,0 +1,55 @@
+{
+  "_comment": "Identity seed verisi. Şifreler seeder'da bcrypt(work factor 11) ile hash'lenir; buradaki değerler README demo tablosuna da girer.",
+  "admin": {
+    "firstName": "Sistem", "lastName": "Admin",
+    "email": "admin@campaigncell.com", "password": "Admin.2026!",
+    "role": "ADMIN", "region": null
+  },
+  "supervisor": {
+    "firstName": "Serkan", "lastName": "Ünal",
+    "email": "supervizor@campaigncell.com", "password": "Super.2026!",
+    "role": "SUPERVIZOR", "region": "MARMARA"
+  },
+  "experts": [
+    {
+      "firstName": "Deniz", "lastName": "Karaca",
+      "email": "deniz.karaca@campaigncell.com", "password": "Uzman.2026!",
+      "role": "PERSONEL", "region": "MARMARA",
+      "expertise": ["RISKLI_KAYIP"],
+      "_note": "Churn uzmanı — RISKLI_KAYIP vakaları buna atanmalı (atama demosu)"
+    },
+    {
+      "firstName": "Merve", "lastName": "Aksoy",
+      "email": "merve.aksoy@campaigncell.com", "password": "Uzman.2026!",
+      "role": "PERSONEL", "region": "IC_ANADOLU",
+      "expertise": ["YUKSEK_DEGER"],
+      "_note": "Değer uzmanı"
+    },
+    {
+      "firstName": "Kaan", "lastName": "Erdem",
+      "email": "kaan.erdem@campaigncell.com", "password": "Uzman.2026!",
+      "role": "PERSONEL", "region": "EGE",
+      "expertise": ["YENI_ABONE", "PASIF"],
+      "_note": "Yeni abone + pasif uzmanı"
+    },
+    {
+      "firstName": "Ece", "lastName": "Yıldız",
+      "email": "ece.yildiz@campaigncell.com", "password": "Uzman.2026!",
+      "role": "PERSONEL", "region": "AKDENIZ",
+      "expertise": ["YUKSEK_DEGER", "RISKLI_KAYIP", "YENI_ABONE", "PASIF"],
+      "_note": "Genel uzman — kapasite dolunca yedek atama hedefi"
+    }
+  ],
+  "subscribers": [
+    { "firstName": "Ahmet",   "lastName": "Yılmaz", "gsm": "5321104501" },
+    { "firstName": "Ayşe",    "lastName": "Demir",  "gsm": "5335562309" },
+    { "firstName": "Mehmet",  "lastName": "Kaya",   "gsm": "5427718845" },
+    { "firstName": "Elif",    "lastName": "Şahin",  "gsm": "5309934417" },
+    { "firstName": "Mustafa", "lastName": "Çelik",  "gsm": "5548220196" },
+    { "firstName": "Zeynep",  "lastName": "Arslan", "gsm": "5361447083" },
+    { "firstName": "Emre",    "lastName": "Doğan",  "gsm": "5053396728" },
+    { "firstName": "Fatma",   "lastName": "Koç",    "gsm": "5442685134" },
+    { "firstName": "Burak",   "lastName": "Aydın",  "gsm": "5317059262" },
+    { "firstName": "Selin",   "lastName": "Öztürk", "gsm": "5386671950" }
+  ]
+}
