@@ -10,6 +10,10 @@ public class Campaign
     public string CampaignNumber { get; set; } = null!;
 
     public string Title { get; set; } = null!;
+
+    /// <summary>Mali Faz 5 ek alanı (frontend CreateCampaignRequest.description) — opsiyonel.</summary>
+    public string? Description { get; set; }
+
     public CampaignType Type { get; set; }
     public SegmentType TargetSegment { get; set; }
 
