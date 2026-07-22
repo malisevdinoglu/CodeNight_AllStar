@@ -50,7 +50,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest)
       } catch (refreshError) {
         useAuthStore.getState().clearSession()
-        toast.error('Oturum suresi doldu. Lutfen tekrar giris yapin.')
+        toast.error('Oturum süresi doldu. Lütfen tekrar giriş yapın.')
         return Promise.reject(refreshError)
       }
     }
@@ -60,11 +60,11 @@ apiClient.interceptors.response.use(
     }
 
     if (status === 423) {
-      toast.error('Hesap kilitli. Lutfen kalan sureyi bekleyin.')
+      toast.error('Hesap kilitli. Lütfen kalan süreyi bekleyin.')
     }
 
     if (status === 429) {
-      toast.error('Cok fazla deneme. Lutfen biraz bekleyin.')
+      toast.error('Çok fazla deneme. Lütfen biraz bekleyin.')
     }
 
     return Promise.reject(error)

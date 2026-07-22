@@ -1,11 +1,6 @@
 import toast from 'react-hot-toast'
 import { OfferCard } from '../../components/domain'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   EmptyState,
   ErrorState,
   Spinner,
@@ -29,29 +24,30 @@ export function OffersPage() {
 
   return (
     <section className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Kisisel teklifler</CardTitle>
-          <CardDescription>
-            Oncelikli teklifler ustte gorunur; kabul/ret aksiyonlari optimistic olarak yenilenir.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-3">
+      <div className="rounded-md bg-[#294b98] p-5 text-white shadow-lg shadow-blue-950/10 sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase text-brand-yellow">Müşteri kampanyaları</p>
+            <h1 className="mt-2 text-2xl font-bold">Kişisel Teklifler</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
+              Sana en uygun kampanya ve avantajları tek ekranda inceleyebilirsin.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[30rem]">
             <Summary label="Aktif teklif" value={offers.filter((item) => item.status === 'SUNULDU').length} />
             <Summary label="Kabul edilen" value={offers.filter((item) => item.status === 'KABUL').length} />
             <Summary label="Puanlanabilir" value={offers.filter((item) => item.canRate).length} />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {offersQuery.isLoading ? <Spinner className="min-h-60" label="Teklifler yukleniyor" /> : null}
+      {offersQuery.isLoading ? <Spinner className="min-h-60" label="Teklifler yükleniyor" /> : null}
       {offersQuery.isError ? (
-        <ErrorState onRetry={() => offersQuery.refetch()} title="Teklifler alinamadi" />
+        <ErrorState onRetry={() => offersQuery.refetch()} title="Teklifler alınamadı" />
       ) : null}
       {!offersQuery.isLoading && !offersQuery.isError && sortedOffers.length === 0 ? (
         <EmptyState
-          description="Su anda sana ozel aktif teklif bulunmuyor."
+          description="Şu anda sana özel aktif teklif bulunmuyor."
           title="Teklif yok"
         />
       ) : null}
@@ -81,9 +77,9 @@ export function OffersPage() {
 
 function Summary({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs font-bold uppercase text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-brand-navy">{value}</p>
+    <div className="rounded-md border border-white/15 bg-white/10 p-4">
+      <p className="text-xs font-bold uppercase text-white/70">{label}</p>
+      <p className="mt-2 text-2xl font-bold text-brand-yellow">{value}</p>
     </div>
   )
 }

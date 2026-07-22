@@ -47,7 +47,7 @@ const breachedColumns: DataTableColumn<CaseDto>[] = [
   },
   {
     key: 'priority',
-    header: 'Oncelik',
+    header: 'Öncelik',
     render: (item) => <PriorityBadge priority={item.priority} />,
   },
 ]
@@ -56,18 +56,18 @@ export function DashboardPage() {
   const dashboardQuery = useDashboardSummary()
 
   if (dashboardQuery.isLoading) {
-    return <Spinner className="min-h-80" label="Dashboard yukleniyor" />
+    return <Spinner className="min-h-80" label="Dashboard yükleniyor" />
   }
 
   if (dashboardQuery.isError) {
-    return <ErrorState onRetry={() => dashboardQuery.refetch()} title="Dashboard alinamadi" />
+    return <ErrorState onRetry={() => dashboardQuery.refetch()} title="Dashboard alınamadı" />
   }
 
   if (!dashboardQuery.data) {
     return (
       <EmptyState
-        description="Dashboard verisi backend hazir olunca bu alanda gorunecek."
-        title="Veri bulunamadi"
+        description="Dashboard verisi hazır olduğunda bu alanda görünecek."
+        title="Veri bulunamadı"
       />
     )
   }
@@ -85,13 +85,13 @@ export function DashboardPage() {
         />
         <MetricCard
           icon={BrainCircuit}
-          label="AI dogruluk"
+          label="AI doğruluk"
           tone="info"
           value={`%${summary.aiAccuracy.overall.toFixed(1)}`}
         />
         <MetricCard
           icon={AlertTriangle}
-          label="SLA asan aktif vaka"
+          label="SLA aşan aktif vaka"
           tone="danger"
           value={summary.slaBreachedActiveCases.length.toString()}
         />
@@ -106,8 +106,8 @@ export function DashboardPage() {
       {summary.slaBreachedActiveCases.length > 0 ? (
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
-            <CardTitle>SLA asan vakalar</CardTitle>
-            <CardDescription>Juri demosunda riskli operasyon sinyali en ustte gorunur.</CardDescription>
+            <CardTitle>SLA Aşan Vakalar</CardTitle>
+            <CardDescription>Riskli operasyon sinyalleri öncelikli olarak görünür.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table
@@ -122,8 +122,8 @@ export function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Segment dagilimi</CardTitle>
-            <CardDescription>Aktif kampanya vakalarinin segment kirilimi.</CardDescription>
+            <CardTitle>Segment Dağılımı</CardTitle>
+            <CardDescription>Aktif kampanya vakalarının segment kırılımı.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -150,8 +150,8 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Donusum trendi</CardTitle>
-            <CardDescription>Son 7 gunluk kampanya donusum orani.</CardDescription>
+            <CardTitle>Dönüşüm Trendi</CardTitle>
+            <CardDescription>Son 7 günlük kampanya dönüşüm oranı.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -178,8 +178,8 @@ export function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-[1fr_24rem]">
         <Card>
           <CardHeader>
-            <CardTitle>Uzman performansi</CardTitle>
-            <CardDescription>Tamamlanan vaka, ortalama lift ve sure etkisi.</CardDescription>
+            <CardTitle>Uzman Performansı</CardTitle>
+            <CardDescription>Tamamlanan vaka, ortalama lift ve süre etkisi.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -201,12 +201,12 @@ export function DashboardPage() {
           <CardHeader
             action={
               <Link to="/queue">
-                <Button variant="secondary">Kuyrugu ac</Button>
+                <Button variant="secondary">Kuyruğu Aç</Button>
               </Link>
             }
           >
-            <CardTitle>AI dogruluk</CardTitle>
-            <CardDescription>Bonus ekrani icin kategori kirilimi.</CardDescription>
+            <CardTitle>AI Doğruluk</CardTitle>
+            <CardDescription>Kategori kırılımına göre doğruluk oranı.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -224,7 +224,7 @@ export function DashboardPage() {
                       style={{ width: `${item.accuracy}%` }}
                     />
                   </div>
-                  <p className="mt-2 text-xs text-slate-500">{item.total} ornek</p>
+                  <p className="mt-2 text-xs text-slate-500">{item.total} örnek</p>
                 </div>
               ))}
             </div>
@@ -263,7 +263,7 @@ function MetricCard({ icon: Icon, label, tone, value }: MetricCardProps) {
           </div>
         </div>
         <Badge className="mt-4" tone={tone === 'danger' ? 'danger' : 'neutral'}>
-          Backend/DB geldikten sonra canli veri
+          Canlı veri
         </Badge>
       </CardContent>
     </Card>

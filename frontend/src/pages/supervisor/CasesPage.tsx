@@ -29,6 +29,23 @@ const statuses: Array<CaseStatus | ''> = [
 
 const priorities: Array<Priority | ''> = ['', 'KRITIK', 'YUKSEK', 'ORTA', 'DUSUK']
 
+const statusLabels: Record<CaseStatus, string> = {
+  YENI: 'Yeni',
+  ATANDI: 'Atandı',
+  OPTIMIZE_EDILIYOR: 'Optimize ediliyor',
+  TEST_EDILIYOR: 'Test ediliyor',
+  TAMAMLANDI: 'Tamamlandı',
+  YAYINDA: 'Yayında',
+  ARSIVLENDI: 'Arşivlendi',
+}
+
+const priorityLabels: Record<Priority, string> = {
+  KRITIK: 'Kritik',
+  YUKSEK: 'Yüksek',
+  ORTA: 'Orta',
+  DUSUK: 'Düşük',
+}
+
 const columns: DataTableColumn<CaseDto>[] = [
   {
     key: 'caseNumber',
@@ -47,13 +64,13 @@ const columns: DataTableColumn<CaseDto>[] = [
   },
   {
     key: 'priority',
-    header: 'Oncelik',
+    header: 'Öncelik',
     render: (item) => <PriorityBadge priority={item.priority} />,
   },
   {
     key: 'status',
     header: 'Durum',
-    render: (item) => <Badge tone="neutral">{item.status}</Badge>,
+    render: (item) => <Badge tone="neutral">{statusLabels[item.status]}</Badge>,
   },
   {
     key: 'expert',
@@ -101,13 +118,13 @@ export function CasesPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Stat label="Toplam vaka" value={stats.total.toString()} />
         <Stat label="Atama bekleyen" value={stats.unassigned.toString()} />
-        <Stat label="SLA asan" value={stats.breached.toString()} tone="danger" />
+        <Stat label="SLA aşan" value={stats.breached.toString()} tone="danger" />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Tum vakalar</CardTitle>
-          <CardDescription>Supervisor operasyon gorunumu; backend pagination gelince ayni tablo korunur.</CardDescription>
+          <CardTitle>Tüm Vakalar</CardTitle>
+          <CardDescription>Süpervizör operasyon görünümü ve vaka takip tablosu.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-5 grid gap-3 md:grid-cols-[12rem_12rem]">
@@ -118,7 +135,7 @@ export function CasesPage() {
             >
               {statuses.map((item) => (
                 <option key={item || 'ALL'} value={item}>
-                  {item || 'Tum durumlar'}
+                  {item ? statusLabels[item] : 'Tüm durumlar'}
                 </option>
               ))}
             </select>
@@ -129,19 +146,19 @@ export function CasesPage() {
             >
               {priorities.map((item) => (
                 <option key={item || 'ALL'} value={item}>
-                  {item || 'Tum oncelikler'}
+                  {item ? priorityLabels[item] : 'Tüm öncelikler'}
                 </option>
               ))}
             </select>
           </div>
 
-          {casesQuery.isLoading ? <Spinner className="min-h-60" label="Vakalar yukleniyor" /> : null}
+          {casesQuery.isLoading ? <Spinner className="min-h-60" label="Vakalar yükleniyor" /> : null}
           {casesQuery.isError ? (
-            <ErrorState onRetry={() => casesQuery.refetch()} title="Vakalar alinamadi" />
+            <ErrorState onRetry={() => casesQuery.refetch()} title="Vakalar alınamadı" />
           ) : null}
           {!casesQuery.isLoading && !casesQuery.isError && cases.length === 0 ? (
             <EmptyState
-              description="Filtrelere uyan operasyon vakasi bulunmuyor."
+              description="Filtrelere uyan operasyon vakası bulunmuyor."
               title="Vaka yok"
             />
           ) : null}

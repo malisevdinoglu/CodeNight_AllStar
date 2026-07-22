@@ -90,7 +90,7 @@ export const handlers = [
       }
 
       if (body.password.length < 8) {
-        return fail('AUTH_400_PASSWORD_POLICY', 'Sifre politikasi ihlal edildi.', 400, [
+        return fail('AUTH_400_PASSWORD_POLICY', 'Şifre politikası ihlal edildi.', 400, [
           'En az 8 karakter olmali.',
           'En az bir buyuk harf icermeli.',
         ])
@@ -99,7 +99,7 @@ export const handlers = [
       const session = mockSessions[body.email]
 
       if (!session) {
-        return fail('AUTH_401_INVALID_CREDENTIALS', 'E-posta veya sifre hatali.', 401)
+        return fail('AUTH_401_INVALID_CREDENTIALS', 'E-posta veya şifre hatalı.', 401)
       }
 
       return ok(session)
@@ -169,14 +169,14 @@ export const handlers = [
       const targetCase = mockCases.find((item) => item.id === caseId)
 
       if (!targetCase) {
-        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadi.', 404)
+        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadı.', 404)
       }
 
       return ok(replaceCase({
         ...targetCase,
         status: 'ATANDI',
         assignedExpertId: body.expertId,
-        assignedExpertName: 'Secilen Uzman',
+        assignedExpertName: 'Seçilen Uzman',
         allowedTransitions: ['OPTIMIZE_EDILIYOR'],
       }))
     }
@@ -187,7 +187,7 @@ export const handlers = [
       const offer = mockOffers.find((item) => item.id === offerId)
 
       if (!offer) {
-        return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadi.', 404)
+        return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadı.', 404)
       }
 
       return ok(replaceOffer({ ...offer, status: body.response, canRate: true }))
@@ -199,7 +199,7 @@ export const handlers = [
       const offer = mockOffers.find((item) => item.id === offerId)
 
       if (!offer) {
-        return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadi.', 404)
+        return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadı.', 404)
       }
 
       if (offer.myRating) {
@@ -224,7 +224,7 @@ export const handlers = [
 
       mockAuditLogs.unshift({
         userId: 'admin-001',
-        userName: 'Admin Kullanici',
+        userName: 'Admin Kullanıcı',
         actionType: 'USER_CREATE',
         occurredAt: createdAt,
         ipAddress: '10.0.0.10',
@@ -253,7 +253,7 @@ export const handlers = [
       const targetCase = mockCases.find((item) => item.id === caseId)
 
       if (!targetCase) {
-        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadi.', 404)
+        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadı.', 404)
       }
 
       if (!targetCase.allowedTransitions.includes(body.targetStatus)) {
@@ -282,7 +282,7 @@ export const handlers = [
       const targetCase = mockCases.find((item) => item.id === caseId)
 
       if (!targetCase) {
-        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadi.', 404)
+        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadı.', 404)
       }
 
       return ok(replaceCase({ ...targetCase, segment: body.segment }))
@@ -304,7 +304,7 @@ export const handlers = [
       const offer = mockOffers.find((item) => item.id === offerId)
 
       if (!offer) {
-        return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadi.', 404)
+        return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadı.', 404)
       }
 
       return ok(offer)
@@ -341,7 +341,7 @@ export const handlers = [
       const targetCase = mockCases.find((item) => item.id === caseId)
 
       if (!targetCase) {
-        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadi.', 404)
+        return fail('CMP_404_CASE_NOT_FOUND', 'Vaka bulunamadı.', 404)
       }
 
       return ok(targetCase)

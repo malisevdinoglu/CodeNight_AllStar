@@ -2,11 +2,9 @@ import { useMutation } from '@tanstack/react-query'
 import {
   ArrowRight,
   BadgeCheck,
-  KeyRound,
   Loader2,
   LockKeyhole,
   Phone,
-  Shield,
 } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -20,26 +18,20 @@ import { useAuthStore } from '../../stores/auth.store'
 type LoginMode = 'staff' | 'subscriber'
 
 const staffLoginSchema = z.object({
-  email: z.string().email('Gecerli bir e-posta girin.'),
-  password: z.string().min(1, 'Sifre zorunludur.'),
+  email: z.string().email('Geçerli bir e-posta girin.'),
+  password: z.string().min(1, 'Şifre zorunludur.'),
 })
 
 const otpRequestSchema = z.object({
   gsmNumber: z
     .string()
-    .min(10, 'GSM numarasi en az 10 haneli olmali.')
-    .regex(/^[0-9+ ]+$/, 'GSM numarasi sadece rakam, bosluk veya + icerebilir.'),
+    .min(10, 'GSM numarası en az 10 haneli olmalı.')
+    .regex(/^[0-9+ ]+$/, 'GSM numarası sadece rakam, boşluk veya + içerebilir.'),
 })
 
 const otpVerifySchema = otpRequestSchema.extend({
-  otpCode: z.string().length(4, 'OTP kodu 4 haneli olmali.'),
+  otpCode: z.string().length(4, 'OTP kodu 4 haneli olmalı.'),
 })
-
-const demoAccounts = [
-  'personel@campaigncell.local',
-  'supervisor@campaigncell.local',
-  'admin@campaigncell.local',
-] as const
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -54,7 +46,7 @@ export function LoginPage() {
 
   const completeLogin = (session: Awaited<ReturnType<typeof authApi.login>>) => {
     setSession(session)
-    toast.success(`${session.user.firstName} ${session.user.lastName} giris yapti.`)
+    toast.success(`${session.user.firstName} ${session.user.lastName} giriş yaptı.`)
     navigate(getRoleHomePath(session.user.role), { replace: true })
   }
 
@@ -72,7 +64,7 @@ export function LoginPage() {
     onSuccess: () => {
       setOtpRequested(true)
       setFormErrors([])
-      toast.success('OTP kodu hazirlandi.')
+      toast.success('OTP kodu hazırlandı.')
     },
     onError: (error) => {
       const apiError = getApiError(error)
@@ -129,57 +121,42 @@ export function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1fr_30rem]">
-        <section className="flex items-center px-5 py-8 sm:px-8 lg:px-12">
-          <div className="mx-auto w-full max-w-3xl">
-            <div className="mb-10 flex items-center gap-3">
-              <div className="flex size-11 items-center justify-center rounded-md bg-brand-yellow text-brand-navy">
-                <Shield size={24} aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-white">CampaignCell</p>
-                <p className="text-sm font-medium text-slate-400">AI kampanya operasyonu</p>
-              </div>
-            </div>
-
-            <div className="max-w-2xl">
-              <p className="text-sm font-bold uppercase text-brand-yellow">Yarisma demosu</p>
-              <h1 className="mt-3 text-3xl font-bold leading-tight text-white sm:text-5xl">
-                Roller, yetkiler ve mock API tek giris noktasindan baslar.
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
-                Backend endpointleri netlestikce bu ekran ayni kalacak; sadece API adaptorleri
-                gercek kontrata baglanacak.
-              </p>
-            </div>
-
-            <div className="mt-8 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
-              {[
-                ['JWT', 'Header hazir'],
-                ['Role guard', 'Aktif'],
-                ['MSW', 'Mock acik'],
-              ].map(([title, value]) => (
-                <div className="rounded-md border border-white/10 bg-white/5 p-4" key={title}>
-                  <p className="text-xs font-bold uppercase text-slate-400">{title}</p>
-                  <p className="mt-2 text-sm font-semibold text-white">{value}</p>
-                </div>
-              ))}
+    <main className="min-h-screen overflow-hidden bg-[#294b98] text-white">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 py-6 sm:px-8 lg:px-10">
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img className="h-10 w-auto object-contain sm:h-12" src="/turkcell-logo.jpeg" alt="CampaignCell" />
+            <div>
+              <p className="text-lg font-bold leading-5 text-white">CampaignCell</p>
+              <p className="text-sm font-medium text-white/70">AI kampanya operasyonu</p>
             </div>
           </div>
-        </section>
+        </header>
 
-        <section className="flex items-center bg-white px-5 py-8 text-slate-950 sm:px-8 lg:px-10">
-          <div className="mx-auto w-full max-w-md">
-            <div className="mb-6">
-              <p className="text-sm font-bold uppercase text-brand-navy">Giris</p>
-              <h2 className="mt-2 text-2xl font-bold">Rolune gore devam et</h2>
+        <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[1fr_31rem] lg:gap-20">
+          <section className="max-w-2xl">
+            <p className="text-sm font-bold uppercase text-brand-yellow">CampaignCell</p>
+            <h1 className="mt-4 text-4xl font-bold leading-tight text-white sm:text-5xl">
+              AI destekli kampanya yönetimi için tek giriş platformu.
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/78 sm:text-lg">
+              AI destekli kampanya yönetimi ve müşteri operasyonları için güvenli giriş platformu.
+            </p>
+          </section>
+
+          <section className="rounded-md border border-white/14 bg-white/9 p-5 text-white shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-8">
+            <div className="mb-8">
+              <p className="text-sm font-bold uppercase text-brand-yellow">Giriş</p>
+              <h2 className="mt-2 text-2xl font-bold">Hesabınıza Giriş Yapın</h2>
+              <p className="mt-2 text-sm font-medium text-white/70">Devam etmek için giriş yönteminizi seçin.</p>
             </div>
 
-            <div className="mb-5 grid grid-cols-2 rounded-md border border-slate-200 bg-slate-100 p-1">
+            <div className="mb-6 grid grid-cols-2 rounded-md border border-white/18 bg-white/10 p-1">
               <button
-                className={`rounded-sm px-3 py-2 text-sm font-bold transition ${
-                  mode === 'staff' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-600'
+                className={`rounded-sm px-3 py-3 text-sm font-bold transition ${
+                  mode === 'staff'
+                    ? 'bg-white text-brand-navy shadow-sm'
+                    : 'text-white/72 hover:bg-white/8 hover:text-white'
                 }`}
                 onClick={() => {
                   setMode('staff')
@@ -193,8 +170,10 @@ export function LoginPage() {
                 </span>
               </button>
               <button
-                className={`rounded-sm px-3 py-2 text-sm font-bold transition ${
-                  mode === 'subscriber' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-600'
+                className={`rounded-sm px-3 py-3 text-sm font-bold transition ${
+                  mode === 'subscriber'
+                    ? 'bg-white text-brand-navy shadow-sm'
+                    : 'text-white/72 hover:bg-white/8 hover:text-white'
                 }`}
                 onClick={() => {
                   setMode('subscriber')
@@ -204,14 +183,14 @@ export function LoginPage() {
               >
                 <span className="inline-flex items-center gap-2">
                   <Phone size={16} aria-hidden="true" />
-                  Musteri
+                  Müşteri
                 </span>
               </button>
             </div>
 
             {formErrors.length > 0 ? (
               <div className="mb-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                <p className="font-bold">Giris tamamlanamadi</p>
+                <p className="font-bold">Giriş tamamlanamadı</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
                   {formErrors.map((error) => (
                     <li key={error}>{error}</li>
@@ -221,11 +200,11 @@ export function LoginPage() {
             ) : null}
 
             {mode === 'staff' ? (
-              <form className="space-y-4" onSubmit={handleStaffSubmit}>
+              <form className="space-y-5" onSubmit={handleStaffSubmit}>
                 <label className="block">
-                  <span className="text-sm font-semibold text-slate-700">E-posta</span>
+                  <span className="text-sm font-semibold text-white/88">E-posta</span>
                   <input
-                    className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+                    className="mt-2 h-12 w-full rounded-md border border-white/18 bg-white px-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/20"
                     onChange={(event) => setEmail(event.target.value)}
                     type="email"
                     value={email}
@@ -233,49 +212,33 @@ export function LoginPage() {
                 </label>
 
                 <label className="block">
-                  <span className="text-sm font-semibold text-slate-700">Sifre</span>
+                  <span className="text-sm font-semibold text-white/88">Şifre</span>
                   <input
-                    className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+                    className="mt-2 h-12 w-full rounded-md border border-white/18 bg-white px-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/20"
                     onChange={(event) => setPassword(event.target.value)}
                     type="password"
                     value={password}
                   />
                 </label>
 
-                <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-xs font-bold uppercase text-slate-500">Mock hesaplar</p>
-                  <div className="mt-2 grid gap-2">
-                    {demoAccounts.map((account) => (
-                      <button
-                        className="text-left text-sm font-semibold text-brand-navy hover:text-slate-950"
-                        key={account}
-                        onClick={() => setEmail(account)}
-                        type="button"
-                      >
-                        {account}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 <button
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-navy px-4 text-sm font-bold text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-yellow px-4 text-sm font-bold text-brand-navy transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isBusy}
                   type="submit"
                 >
                   {isBusy ? <Loader2 className="animate-spin" size={18} /> : <ArrowRight size={18} />}
-                  Giris yap
+                  Giriş Yap
                 </button>
               </form>
             ) : (
               <form
-                className="space-y-4"
+                className="space-y-5"
                 onSubmit={otpRequested ? handleOtpVerify : handleOtpRequest}
               >
                 <label className="block">
-                  <span className="text-sm font-semibold text-slate-700">GSM numarasi</span>
+                  <span className="text-sm font-semibold text-white/88">GSM numarası</span>
                   <input
-                    className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+                    className="mt-2 h-12 w-full rounded-md border border-white/18 bg-white px-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/20"
                     onChange={(event) => setGsmNumber(event.target.value)}
                     type="tel"
                     value={gsmNumber}
@@ -284,9 +247,9 @@ export function LoginPage() {
 
                 {otpRequested ? (
                   <label className="block">
-                    <span className="text-sm font-semibold text-slate-700">OTP kodu</span>
+                    <span className="text-sm font-semibold text-white/88">Doğrulama kodu</span>
                     <input
-                      className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+                      className="mt-2 h-12 w-full rounded-md border border-white/18 bg-white px-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-brand-yellow focus:ring-4 focus:ring-brand-yellow/20"
                       inputMode="numeric"
                       onChange={(event) => setOtpCode(event.target.value)}
                       value={otpCode}
@@ -294,13 +257,8 @@ export function LoginPage() {
                   </label>
                 ) : null}
 
-                <div className="flex items-center gap-2 rounded-md border border-brand-yellow/60 bg-brand-yellow/15 p-3 text-sm font-semibold text-brand-navy">
-                  <KeyRound size={17} aria-hidden="true" />
-                  OTP ipucu: 1234
-                </div>
-
                 <button
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand-navy px-4 text-sm font-bold text-white transition hover:bg-brand-ink disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-yellow px-4 text-sm font-bold text-brand-navy transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isBusy}
                   type="submit"
                 >
@@ -309,12 +267,12 @@ export function LoginPage() {
                   ) : (
                     <BadgeCheck size={18} />
                   )}
-                  {otpRequested ? 'OTP ile giris yap' : 'OTP iste'}
+                  {otpRequested ? 'Giriş Yap' : 'Kod Gönder'}
                 </button>
               </form>
             )}
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </main>
   )

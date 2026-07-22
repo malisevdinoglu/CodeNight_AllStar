@@ -9,10 +9,10 @@ type ErrorStateProps = {
 }
 
 export function ErrorState({
-  description = 'Veri alinirken bir sorun olustu.',
+  description = 'Veri alınırken bir sorun oluştu.',
   onRetry,
   retryLabel = 'Tekrar dene',
-  title = 'Bir sey ters gitti',
+  title = 'Bir şey ters gitti',
 }: ErrorStateProps) {
   return (
     <div className="flex min-h-60 flex-col items-center justify-center rounded-md border border-red-200 bg-red-50 p-8 text-center">

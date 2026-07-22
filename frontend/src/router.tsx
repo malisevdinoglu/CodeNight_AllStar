@@ -4,7 +4,6 @@ import { GuestRoute } from './components/routing/GuestRoute'
 import { RequireAuth } from './components/routing/RequireAuth'
 import { RequireRole } from './components/routing/RequireRole'
 import { RoleRedirect } from './components/routing/RoleRedirect'
-import { PhaseOnePage } from './pages/PhaseOnePage'
 import { AuditLogsPage } from './pages/admin/AuditLogsPage'
 import { StaffPage } from './pages/admin/StaffPage'
 import { LoginPage } from './pages/auth/LoginPage'
@@ -29,11 +28,10 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <AppShell />,
-        children: [
-          { index: true, element: <RoleRedirect /> },
-          { path: 'phase-one', element: <PhaseOnePage /> },
-          {
+          element: <AppShell />,
+          children: [
+            { index: true, element: <RoleRedirect /> },
+            {
             element: <RequireRole allowedRoles={['MUSTERI']} />,
             children: [
               { path: 'offers', element: <OffersPage /> },

@@ -16,18 +16,42 @@ import {
 import { useCreateStaff } from '../../hooks/useAdmin'
 
 const staffSchema = z.object({
-  firstName: z.string().min(2, 'Ad en az 2 karakter olmali.'),
-  lastName: z.string().min(2, 'Soyad en az 2 karakter olmali.'),
-  email: z.string().email('Gecerli bir e-posta girin.'),
-  password: z.string().min(8, 'Gecici sifre en az 8 karakter olmali.'),
+  firstName: z.string().min(2, 'Ad en az 2 karakter olmalı.'),
+  lastName: z.string().min(2, 'Soyad en az 2 karakter olmalı.'),
+  email: z.string().email('Geçerli bir e-posta girin.'),
+  password: z.string().min(8, 'Geçici şifre en az 8 karakter olmalı.'),
   role: z.enum(['PERSONEL', 'SUPERVIZOR', 'ADMIN']),
   expertiseAreas: z.array(z.enum(['YUKSEK_DEGER', 'RISKLI_KAYIP', 'YENI_ABONE', 'PASIF', 'BELIRSIZ'])),
-  region: z.string().min(2, 'Bolge secimi zorunludur.'),
+  region: z.string().min(2, 'Bölge seçimi zorunludur.'),
 })
 
 const segments: Segment[] = ['RISKLI_KAYIP', 'YUKSEK_DEGER', 'YENI_ABONE', 'PASIF', 'BELIRSIZ']
 const regions = ['MARMARA', 'IC_ANADOLU', 'EGE', 'AKDENIZ', 'KARADENIZ', 'DOGU_ANADOLU']
 const roles: UserRole[] = ['PERSONEL', 'SUPERVIZOR', 'ADMIN']
+
+const segmentLabels: Record<Segment, string> = {
+  RISKLI_KAYIP: 'Riskli kayıp',
+  YUKSEK_DEGER: 'Yüksek değer',
+  YENI_ABONE: 'Yeni abone',
+  PASIF: 'Pasif',
+  BELIRSIZ: 'Belirsiz',
+}
+
+const regionLabels: Record<string, string> = {
+  MARMARA: 'Marmara',
+  IC_ANADOLU: 'İç Anadolu',
+  EGE: 'Ege',
+  AKDENIZ: 'Akdeniz',
+  KARADENIZ: 'Karadeniz',
+  DOGU_ANADOLU: 'Doğu Anadolu',
+}
+
+const roleLabels: Record<UserRole, string> = {
+  PERSONEL: 'Personel',
+  SUPERVIZOR: 'Süpervizör',
+  ADMIN: 'Admin',
+  MUSTERI: 'Müşteri',
+}
 
 export function StaffPage() {
   const createStaff = useCreateStaff()
@@ -59,7 +83,7 @@ export function StaffPage() {
 
     setErrors([])
     createStaff.mutate(parsed.data, {
-      onSuccess: () => toast.success('Personel olusturuldu.'),
+      onSuccess: () => toast.success('Personel oluşturuldu.'),
       onError: (error) => toast.error(getApiError(error).message),
     })
   }
@@ -76,15 +100,15 @@ export function StaffPage() {
     <section className="grid gap-6 xl:grid-cols-[1fr_24rem]">
       <Card>
         <CardHeader>
-          <CardTitle>Personel olustur</CardTitle>
+          <CardTitle>Personel Oluştur</CardTitle>
           <CardDescription>
-            Admin yetkisiyle personel, supervisor veya admin hesabi tanimlanir.
+            Admin yetkisiyle personel, süpervizör veya admin hesabı tanımlanır.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {errors.length > 0 ? (
             <div className="mb-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              <p className="font-bold">Form kontrolu</p>
+              <p className="font-bold">Form kontrolü</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 {errors.map((error) => (
                   <li key={error}>{error}</li>
@@ -102,18 +126,25 @@ export function StaffPage() {
             <TextField label="E-posta" onChange={setEmail} type="email" value={email} />
 
             <div className="grid gap-5 md:grid-cols-3">
-              <TextField label="Gecici sifre" onChange={setPassword} value={password} />
+              <TextField label="Geçici şifre" onChange={setPassword} value={password} />
               <SelectField
                 label="Rol"
+                getLabel={(value) => roleLabels[value as UserRole]}
                 onChange={(value) => setRole(value as UserRole)}
                 options={roles}
                 value={role}
               />
-              <SelectField label="Bolge" onChange={setRegion} options={regions} value={region} />
+              <SelectField
+                getLabel={(value) => regionLabels[value]}
+                label="Bölge"
+                onChange={setRegion}
+                options={regions}
+                value={region}
+              />
             </div>
 
             <fieldset>
-              <legend className="text-sm font-semibold text-slate-700">Expertise alanlari</legend>
+              <legend className="text-sm font-semibold text-slate-700">Uzmanlık alanları</legend>
               <div className="mt-3 flex flex-wrap gap-2">
                 {segments.map((segment) => (
                   <button
@@ -126,7 +157,7 @@ export function StaffPage() {
                     onClick={() => toggleExpertise(segment)}
                     type="button"
                   >
-                    {segment}
+                    {segmentLabels[segment]}
                   </button>
                 ))}
               </div>
@@ -137,7 +168,7 @@ export function StaffPage() {
               leftIcon={<UserPlus size={18} aria-hidden="true" />}
               type="submit"
             >
-              Personel olustur
+              Personel Oluştur
             </Button>
           </form>
         </CardContent>
@@ -145,14 +176,14 @@ export function StaffPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Son sonuc</CardTitle>
-          <CardDescription>Backend geldikten sonra gecici sifre politikasina baglanacak.</CardDescription>
+          <CardTitle>Sonuç</CardTitle>
+          <CardDescription>Personel oluşturma işleminin özeti.</CardDescription>
         </CardHeader>
         <CardContent>
           {createStaff.data ? (
             <div className="space-y-4">
               <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Olusturulan kullanici</p>
+                <p className="text-xs font-bold uppercase text-slate-500">Oluşturulan kullanıcı</p>
                 <p className="mt-2 text-lg font-bold text-slate-950">
                   {createStaff.data.user.firstName} {createStaff.data.user.lastName}
                 </p>
@@ -161,7 +192,7 @@ export function StaffPage() {
                 </Badge>
               </div>
               <div className="rounded-md border border-brand-yellow/60 bg-brand-yellow/15 p-4">
-                <p className="text-xs font-bold uppercase text-brand-navy">Gecici sifre</p>
+                <p className="text-xs font-bold uppercase text-brand-navy">Geçici şifre</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <code className="rounded-sm bg-white px-2 py-1 text-sm font-bold text-slate-950">
                     {createStaff.data.temporaryPassword}
@@ -171,8 +202,8 @@ export function StaffPage() {
                     onClick={() =>
                       navigator.clipboard
                         .writeText(createStaff.data.temporaryPassword)
-                        .then(() => toast.success('Gecici sifre kopyalandi.'))
-                        .catch(() => toast.error('Kopyalama tarayici tarafindan engellendi.'))
+                        .then(() => toast.success('Geçici şifre kopyalandı.'))
+                        .catch(() => toast.error('Kopyalama tarayıcı tarafından engellendi.'))
                     }
                     size="sm"
                     variant="secondary"
@@ -184,7 +215,7 @@ export function StaffPage() {
             </div>
           ) : (
             <p className="text-sm leading-6 text-slate-600">
-              Personel olusturuldugunda gecici sifre ve kullanici ozeti burada gorunur.
+              Personel oluşturulduğunda geçici şifre ve kullanıcı özeti burada görünür.
             </p>
           )}
         </CardContent>
@@ -218,11 +249,13 @@ function TextField({
 }
 
 function SelectField({
+  getLabel,
   label,
   onChange,
   options,
   value,
 }: {
+  getLabel?: (value: string) => string
   label: string
   onChange: (value: string) => void
   options: string[]
@@ -238,7 +271,7 @@ function SelectField({
       >
         {options.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {getLabel ? getLabel(option) : option}
           </option>
         ))}
       </select>
