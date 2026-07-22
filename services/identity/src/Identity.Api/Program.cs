@@ -70,6 +70,18 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // BUG FIX: statik JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear() (yukarida)
+        // tek basina guvenilir degil — .NET 8'in JwtBearer'i varsayilan olarak
+        // Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler kullanabiliyor, bu da
+        // System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler'in statik haritasindan
+        // BAGIMSIZ calisabiliyor. Canli testte dogrulandi: JWT gecerli sekilde dogrulaniyor
+        // ([Authorize] geciyor, custom OnChallenge tetiklenmiyor) ama ClaimsPrincipal'da "sub"
+        // FindFirst("sub") ile bulunamiyordu (GetMeQueryHandler UNAUTHENTICATED atiyordu) —
+        // claim turu sessizce baska bir ada (ClaimTypes.NameIdentifier) eslenmis olmaliydi.
+        // MapInboundClaims = false, kullanilan handler ne olursa olsun eslemeyi kesin olarak
+        // kapatir ve token'daki ham claim adlarini ("sub"/"role") korur.
+        options.MapInboundClaims = false;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -147,6 +159,43 @@ builder.Services
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
+// ---- Swagger/OpenAPI (Mali_Plan.md Faz 9: her .NET serviste /swagger) ----
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "CampaignCell Identity API",
+        Version = "v1",
+        Description = "Kimlik dogrulama, personel/musteri yonetimi, audit log (Core_Principles §6).",
+    });
+
+    var jwtScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "JWT Bearer token. Ornek: 'Bearer eyJhbGciOi...' (POST /api/v1/auth/login yanitindaki accessToken).",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+    };
+    options.AddSecurityDefinition("Bearer", jwtScheme);
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer",
+                },
+            },
+            Array.Empty<string>()
+        },
+    });
+});
+
 // ---- Event bus (Core_Principles §8) ----
 builder.Services.AddCampaignCellMassTransit(builder.Configuration);
 
@@ -157,6 +206,12 @@ await app.Services.MigrateAndSeedAsync();
 
 // Tum hatalar tek merkezden ApiResponse zarfina cevrilir (Core_Principles §5)
 app.UseCampaignCellExceptionHandling("AUTH");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "Identity API v1"));
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

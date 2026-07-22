@@ -36,11 +36,12 @@ public static class MigrationExtensions
             }
         }
 
-        // Badge katalogu Iskender'in genel IDataSeeder sozlesmesinin disinda, ayrica ve idempotent
-        // olarak seed edilir (bkz. BadgeCatalogSeeder ustundeki aciklama) - ExpertBadge FK'si
-        // bu satirlar olmadan hicbir rozet kaydini kabul etmez.
-        await BadgeCatalogSeeder.SeedAsync(dbContext, logger, default);
-
+        // NOT: Badge katalogu artik Iskender'in gercek IDataSeeder implementasyonu
+        // (GamificationDataSeeder) tarafindan seed ediliyor - BadgeCatalogSeeder interim
+        // cozumdu (NoOpDataSeeder doneminde ExpertBadge FK'sini calisir tutmak icindi) ve
+        // burada BURADAN CAGRILMAMALI: once calisirsa GamificationDataSeeder'in "Badges
+        // boşsa seed et" koruma kosulunu bosa cikarip demo uzman/rozet verisinin (Deniz/
+        // Merve/Kaan/Ece) hic seed edilmemesine yol acar.
         var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
         await seeder.SeedAsync();
         logger.LogInformation("Seed tamamlandi.");

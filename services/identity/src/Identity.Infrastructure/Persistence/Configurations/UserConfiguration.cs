@@ -13,7 +13,17 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("users");
 
         builder.HasKey(u => u.Id);
-        builder.Property(u => u.Id).ValueGeneratedNever(); // Id domain'de client-side uretilir (User.Create*)
+        // BUG FIX: Id domain'de client-side Guid.NewGuid() ile uretiliyor (User.cs), ama burada
+        // ValueGeneratedOnAdd() DB/EF'in uretecegini soyluyordu. Guid PK icin EF'in reachability
+        // tabanli state tahmini soyle calisir: key CLR default'a (Guid.Empty) esitse Added,
+        // degilse (Guid.NewGuid() hep dolu deger uretir) mevcut kayit varsayilip Modified/Unchanged
+        // isaretlenir. Bu, navigation uzerinden (explicit Add() OLMADAN) parent'a eklenen entity'ler
+        // icin (login sirasinda user.IssueRefreshToken -> _refreshTokens.Add(...)) INSERT yerine
+        // hicbir satiri etkilemeyen bir UPDATE'e -> DbUpdateConcurrencyException'a yol aciyordu
+        // (canli testte login'in HER zaman 500 donmesiyle dogrulandi). ValueGeneratedNever()
+        // EF'e "anahtari her zaman uygulama atar" der; artik key dolu olsa da Added dogru
+        // isaretlenir. DB kolonu zaten uuid NOT NULL (store-generated default yok), sema degismiyor.
+        builder.Property(u => u.Id).ValueGeneratedNever();
 
         builder.Property(u => u.FirstName).HasMaxLength(60).IsRequired();
         builder.Property(u => u.LastName).HasMaxLength(60).IsRequired();

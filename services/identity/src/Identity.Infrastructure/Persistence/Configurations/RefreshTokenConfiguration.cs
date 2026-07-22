@@ -12,9 +12,11 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         builder.ToTable("refresh_tokens");
 
         builder.HasKey(t => t.Id);
-        // Id domain'de client-side uretilir (RefreshToken.Issue → Guid.NewGuid()). ValueGeneratedOnAdd
-        // olsaydi EF, dolu Guid'li yeni token'i (izlenen user'in koleksiyonuna eklenince) "var olan"
-        // sanip UPDATE atardi → 0 satir → login'de DbUpdateConcurrencyException. Client-gen = ValueGeneratedNever.
+        // BUG FIX: bkz. UserConfiguration.cs ayni satir aciklamasi — Id RefreshToken.Issue()
+        // icinde client-side Guid.NewGuid() ile uretiliyor, ValueGeneratedNever() gerekiyordu.
+        // Bu tam olarak login'in 500 dondugu satirdi: yeni token izlenen User'in
+        // RefreshTokens navigation'ina eklenip SaveChanges'te UPDATE ... WHERE id=<yeniGuid>
+        // olarak gonderiliyor, 0 satir etkileniyordu.
         builder.Property(t => t.Id).ValueGeneratedNever();
 
         builder.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();

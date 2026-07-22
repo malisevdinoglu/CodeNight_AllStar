@@ -1,181 +1,149 @@
 # CampaignCell
 
-**Turkcell CodeNight 2026 — Final** · Yapay zekâ destekli, mikroservis mimarili kişiselleştirilmiş kampanya ve öneri platformu.
+Telekom operatörleri için düşük dönüşümlü kampanyaları **otomatik tespit edip optimize eden**,
+AI destekli uzman atama ve gamification ile desteklenen bir "optimizasyon vakası" platformu.
+4 mikroservis (.NET 8 + Python/FastAPI), tek bir Gateway (YARP) arkasında, React frontend ile.
 
-Turkcell abonelerine **doğru teklifi, doğru anda, doğru kişiye** sunar: AI abone profilini analiz eder,
-en uygun kampanyayı önerir, dönüşüm olasılığını tahmin eder ve düşük dönüşümlü segmentleri uygun kampanya
-uzmanına otomatik atar. Uzmanlar optimizasyon yaptıkça puan/rozet kazanır; yöneticiler tüm kampanya
-performansını ve modelin isabetini tek ekrandan izler.
-
----
+> Takım rolleri ve fazlı teslim planı için `Mali.md` / `Mali_Plan.md` (backend/mimari),
+> proje "anayasası" için `Core_Principles.md`.
 
 ## Mimari
 
+```mermaid
+flowchart TB
+    FE["Frontend (React + Vite)\nport 3000"]
+    GW["Gateway (YARP + JWT + Rate Limiting)\nport 8080 — tek dış kapı"]
+
+    FE -->|"/api/v1/**"| GW
+
+    GW --> ID["Identity API\n.NET 8"]
+    GW --> CMP["Campaign API\n.NET 8"]
+    GW --> AI["AI Service\nPython/FastAPI"]
+    GW --> GAM["Gamification API\n.NET 8"]
+    GW -.->|"WebSocket /hubs/**"| GAM
+
+    ID --> IDB[("identity-db\nPostgres")]
+    CMP --> CDB[("campaign-db\nPostgres")]
+    AI --> ADB[("ai-db\nPostgres")]
+    GAM --> GDB[("gamification-db\nPostgres")]
+    GAM --> RD[("Redis\nliderlik tablosu")]
+
+    CMP --> ID
+    CMP -->|"REST: recommend/classify/assign"| AI
+
+    CMP -->|"campaign.optimized\ncase.sla_breached\noffer.rated"| MQ(("RabbitMQ\ntopic exchange\ncampaigncell.events"))
+    CMP -->|"segment.overridden\noffer.responded"| MQ
+    MQ --> GAM
+    MQ --> AI
+
+    GAM -.->|"SignalR push\nbadge.earned / points.updated"| FE
 ```
-                          ┌───────────────┐
-        Frontend  ───────▶│  API Gateway  │  :8080  (tek dış kapı)
-        (React)           │     YARP      │  JWT doğrulama + rate limiting
-                          └───────┬───────┘
-              ┌───────────────┬───┴───────────┬────────────────┐
-              ▼               ▼               ▼                ▼
-      ┌──────────────┐ ┌─────────────┐ ┌───────────┐ ┌────────────────┐
-      │   Identity   │ │  Campaign   │ │    AI     │ │  Gamification  │
-      │   .NET 8     │ │   .NET 8    │ │  FastAPI  │ │    .NET 8      │
-      └──────┬───────┘ └──────┬──────┘ └─────┬─────┘ └───────┬────────┘
-             ▼                ▼              ▼               ▼
-        identity-db      campaign-db       ai-db      gamification-db + Redis
-         (Postgres)       (Postgres)     (Postgres)      (Postgres)
 
-                    ┌───────────────────────────────┐
-                    │ RabbitMQ · campaigncell.events│  ◀── asenkron event akışı
-                    └───────────────────────────────┘
-```
+- **Database-per-service:** her .NET/Python servisin kendi Postgres'i var, fiziksel ayrım (FK yok, cross-service id'ler sadece referans).
+- **Event-driven:** servisler arası asenkron iletişim RabbitMQ topic exchange üzerinden (`campaigncell.events`); tam katalog → [`EVENTS.md`](EVENTS.md).
+- **Defense in depth:** JWT hem Gateway'de hem her downstream serviste bağımsız doğrulanır.
+- **Graceful degradation:** AI servisi kapansa/timeout olsa bile kampanya akışı kesilmez (`BELIRSIZ`/`ORTA` fallback) — bkz. `docs/AI_APPROACH.md` §7.
 
-**Database-per-service:** Her servisin kendi PostgreSQL **container**'ı ve kendi volume'ü vardır.
-Servisler arası doğrudan veritabanı erişimi yoktur; başka servisin kimliği yalnızca `uuid` kolon
-olarak tutulur — **cross-service foreign key YOKTUR**.
+## Servisler
 
-| Servis | Sorumluluk | Teknoloji |
+| Servis | Teknoloji | README |
 |---|---|---|
-| **API Gateway** | Tek giriş noktası, routing, JWT doğrulama, rate limiting | YARP (.NET 8) |
-| **Identity** | Kayıt/giriş (GSM+OTP, e-posta+şifre), JWT + refresh token rotation, rol/yetki matrisi, audit log, hesap kilitleme | .NET 8, EF Core |
-| **Campaign** | Kampanya yaşam döngüsü, vaka state machine, SLA takibi, teklif ve puanlama | .NET 8, EF Core, MassTransit Outbox |
-| **AI** | Öneri skorlama, segment sınıflandırma, akıllı uzman ataması, doğruluk takibi | Python 3.12, FastAPI, scikit-learn |
-| **Gamification** | Puan, rozet, seviye, liderlik — **yalnızca event dinler** | .NET 8, EF Core, Redis, SignalR |
+| Gateway | .NET 8, YARP | [`gateway/README.md`](gateway/README.md) |
+| Identity | .NET 8, Clean Architecture, EF Core | [`services/identity/README.md`](services/identity/README.md) |
+| Campaign | .NET 8, Clean Architecture, EF Core | [`services/campaign/README.md`](services/campaign/README.md) |
+| Gamification | .NET 8, Clean Architecture, EF Core, SignalR | [`services/gamification/README.md`](services/gamification/README.md) |
+| AI Service | Python 3.12, FastAPI, scikit-learn | [`services/ai/README.md`](services/ai/README.md) — yaklaşım detayı: [`docs/AI_APPROACH.md`](docs/AI_APPROACH.md) |
+| Frontend | React + Vite + TypeScript | [`frontend/README.md`](frontend/README.md) |
 
-**İletişim kuralı:** Komut = REST (senkron), olan biten = Event (asenkron, RabbitMQ).
-Event kataloğu ve payload sözleşmeleri: **[EVENTS.md](EVENTS.md)**.
-AI yaklaşımı, eğitim verisi ve model süreci: **[docs/AI_APPROACH.md](docs/AI_APPROACH.md)**.
-
----
-
-## Kurulum — tek komut
-
-**Gereksinim:** Docker Desktop (Compose v2) ve ~10 GB boş disk.
+## Kurulum (tek komut şartı)
 
 ```bash
 git clone <repo-url> && cd CodeNight_AllStar
-cp .env.example .env
-docker compose up --build
+cp .env.example .env          # gerekirse sirlari duzenle (dev varsayilanlari calisir haldedir)
+docker compose up --build -d  # migration + seed otomatik calisir
 ```
 
-Bu kadar. Compose ayağa kalkarken **veritabanı migration'ları ve demo seed verisi otomatik
-çalışır** — ekstra komut gerekmez. Tüm servisler healthcheck'lidir; `depends_on` zinciri
-başlatma sırasını kendiliğinden doğru kurar.
+Tüm servisler `GET /health` sunar; `docker compose ps` ile hepsinin `healthy` olduğunu doğrula.
+Frontend: **http://localhost:3000** — API her zaman tek kapıdan: **http://localhost:8080/api/v1/...**
 
-### Erişim adresleri
+RabbitMQ yönetim arayüzü: http://localhost:15672 (kullanıcı/şifre `.env`'deki `RABBITMQ_USER`/`RABBITMQ_PASSWORD`).
 
-| Ne | Adres |
-|---|---|
-| **Uygulama (Frontend)** | http://localhost:3000 |
-| **API Gateway** (tek dış kapı) | http://localhost:8080 |
-| RabbitMQ yönetim UI | http://localhost:15672 |
-| Identity / Campaign / AI / Gamification (debug) | :5001 / :5002 / :5003 / :5004 |
-| PostgreSQL — identity / campaign / ai / gamification | :5433 / :5434 / :5435 / :5436 |
+### API dokümantasyonu (Swagger / OpenAPI)
 
-> Frontend **yalnızca** Gateway (`:8080`) üzerinden konuşur; servis portlarına doğrudan istek
-> atılmaz. Servis portları sadece geliştirme/debug amaçlıdır.
+Development ortamında (varsayılan `.env`) her .NET servisin kendi `/swagger` sayfası vardır
+(gateway'i atlayıp doğrudan servis portundan, bkz. Core_Principles §9 debug portları):
 
-### Sıfırdan temiz başlatma
+- Identity: http://localhost:5001/swagger
+- Campaign: http://localhost:5002/swagger
+- Gamification: http://localhost:5004/swagger
+- AI Service (FastAPI): http://localhost:5003/docs
+
+Swagger'daki "Authorize" ile `POST /api/v1/auth/login`'den alınan `accessToken`'ı
+`Bearer <token>` formatında girip korumalı endpoint'leri deneyebilirsin.
+
+## Demo kullanıcıları
+
+Seed otomatik çalışır (`docs/SEED_DATA.md`'ye birebir), `docker compose up`'tan hemen sonra kullanılabilir:
+
+| Rol | E-posta | Şifre |
+|---|---|---|
+| ADMIN | `admin@campaigncell.com` | `Admin.2026!` |
+| SUPERVIZOR | `supervizor@campaigncell.com` | `Super.2026!` |
+| PERSONEL (uzman) | `deniz.karaca@campaigncell.com`, `merve.aksoy@campaigncell.com`, `kaan.erdem@campaigncell.com`, `ece.yildiz@campaigncell.com` | `Uzman.2026!` |
+| MUSTERI | 10 seed abone (OTP akışı) | OTP: `1234` |
+
+## Portlar
+
+| Container | İç Port | Host Port |
+|---|---|---|
+| gateway | 8080 | **8080** (tek dış kapı) |
+| frontend | 80 | 3000 |
+| identity-api / campaign-api / ai-api / gamification-api | 8080 / 8080 / 8000 / 8080 | 5001 / 5002 / 5003 / 5004 (debug/Swagger için) |
+| identity-db / campaign-db / ai-db / gamification-db | 5432 | 5433 / 5434 / 5435 / 5436 |
+| rabbitmq | 5672 | 5672, 15672 (yönetim UI) |
+| redis | 6379 | 6379 |
+
+Frontend **sadece** Gateway üzerinden konuşur; servis portlarına doğrudan istek atmak (debug/Swagger dışında) sözleşme dışıdır.
+
+## Güvenlik
+
+Core_Principles §10 kontrol listesinin tamamı canlı test edildi (Faz 8): SQL injection,
+XSS, IDOR, JWT doğrulama (bozuk/kurcalanmış/süresi dolmuş → 401), rol ihlali (403 + audit
+log), refresh token rotation + hırsızlık koruması (çalınmış token tekrar kullanılırsa TÜM
+oturumlar kapatılır), rate limiting (60/dk global, 5/dk login), hesap kilitleme (5 yanlış
+deneme → 15 dk, kalan süre response'ta), bcrypt (work factor 11) + kural bazlı şifre
+politikası mesajları, secrets yönetimi (`.env`, koda gömme yok).
+
+## Test + CI
+
+- Her .NET servisin kendi xUnit test projesi var (`tests/*.UnitTests`): state machine geçiş
+  matrisi, refresh token rotation/theft, şifre politikası, atama skor formülü, puan/badge
+  kuralları, en az 1 gerçek EF Core + MediatR entegrasyon testi (`Campaign.UnitTests/Integration`).
+- AI servisi: `pytest` (`services/ai/tests`).
+- `.github/workflows/ci.yml`: her push/PR'da paralel olarak dotnet build+test (Identity/
+  Campaign/Gamification matrix), gateway build, AI pytest, frontend build çalışır.
+
+Yerel çalıştırma:
 
 ```bash
-docker compose down -v && docker compose up --build
+# .NET (her servis kendi solution'ı)
+dotnet test services/identity/Identity.sln
+dotnet test services/campaign/Campaign.sln
+dotnet test services/gamification/Gamification.sln
+
+# AI
+cd services/ai && pip install -r requirements-dev.txt && pytest
+
+# Frontend
+cd frontend && npm ci && npm run build
 ```
 
----
+## Dokümantasyon haritası
 
-## Demo Kullanıcıları
-
-Seed verisi otomatik yüklenir; tüm hesaplar hazırdır (ayrıntı: [docs/SEED_DATA.md](docs/SEED_DATA.md)).
-
-### Personel / yönetim — e-posta + şifre
-
-| Rol | E-posta | Şifre | Yetki |
-|---|---|---|---|
-| **Admin** | `admin@campaigncell.com` | `Admin.2026!` | Personel hesabı oluşturur, rol yönetir, audit log görür |
-| **Süpervizör** | `supervizor@campaigncell.com` | `Super.2026!` | Dashboard, manuel atama, onay, tüm kayıtlar |
-| **Uzman** (churn) | `deniz.karaca@campaigncell.com` | `Uzman.2026!` | Uzmanlık `RISKLI_KAYIP` — Altın seviye (1600 puan) |
-| **Uzman** (değer) | `merve.aksoy@campaigncell.com` | `Uzman.2026!` | Uzmanlık `YUKSEK_DEGER` — Gümüş (750) |
-| **Uzman** (yeni/pasif) | `kaan.erdem@campaigncell.com` | `Uzman.2026!` | `YENI_ABONE` + `PASIF` — Bronz (350) |
-| **Uzman** (genel) | `ece.yildiz@campaigncell.com` | `Uzman.2026!` | Tüm segmentler — Bronz (80) |
-
-> Uzmanların uzmanlık alanları **bilerek farklı** seçildi: akıllı atama algoritmasının farklı
-> vakaları farklı kişilere yönlendirdiği demoda görünür olsun diye.
-
-### Aboneler — GSM + OTP
-
-**OTP kodu tüm aboneler için `1234`** (case §3.1 simülasyonu).
-
-| GSM | Ad Soyad | Segment profili |
-|---|---|---|
-| `5321104501` | Ahmet Yılmaz | YUKSEK_DEGER |
-| `5335562309` | Ayşe Demir | YUKSEK_DEGER |
-| `5427718845` | Mehmet Kaya | YUKSEK_DEGER |
-| `5309934417` | Elif Şahin | RISKLI_KAYIP |
-| `5548220196` | Mustafa Çelik | RISKLI_KAYIP |
-| `5361447083` | Zeynep Arslan | RISKLI_KAYIP |
-| `5053396728` | Emre Doğan | YENI_ABONE |
-| `5442685134` | Fatma Koç | YENI_ABONE |
-| `5317059262` | Burak Aydın | PASIF |
-| `5386671950` | Selin Öztürk | PASIF |
-
-### Hazır demo verisi
-
-- **2 kampanya** ve **3 optimizasyon vakası** — biri `KRITIK` önceliğinde ve SLA'sı ~30 dakika
-  sonra doluyor (dashboard'da kırmızı görünür), biri `BELIRSIZ` segmentle manuel atama kuyruğunda
-- **Gamification:** 4 uzman dört ayrı seviyede, 6 rozetlik katalog, dağıtılmış rozetler
-- **AI:** eğitilmiş model künyesi + 10 tahmin + 1 düzeltme → doğruluk metriği **%90** görünür
-
----
-
-## Öne çıkan özellikler
-
-**Güvenlik.** Parolalar bcrypt (work factor 11) ile hash'lenir. JWT (15 dk) + refresh token
-**rotation** ve theft koruması: geçersiz kılınmış bir token yeniden kullanılırsa kullanıcının
-tüm oturumları kapatılır. 5 hatalı girişte 15 dakika hesap kilidi (kalan süre yanıtta döner).
-Yetki matrisi endpoint seviyesinde uygulanır, her 403 audit log'a yazılır. Gateway'de rate
-limiting. Tüm sorgular parametriktir (EF Core / SQLAlchemy) — string birleştirme yoktur.
-
-**Dayanıklılık.** Transactional Outbox sayesinde "veritabanına yazıldı ama event kayboldu"
-durumu imkânsızdır. AI Service erişilemezse Campaign kampanyayı yine oluşturur
-(`segment: BELIRSIZ`, `priority: ORTA`, manuel kuyruk) — **bir servis çökse bile sistemin
-geri kalanı çalışmaya devam eder.**
-
-**AI.** Kendi ürettiğimiz 300 satırlık sentetik veri setiyle eğitilmiş scikit-learn modelleri:
-segment sınıflandırma **%96.7 doğruluk**, kampanya tipi başına kabul olasılığı tahmini.
-Eğitim verisi ve üretim betiği repodadır (`services/ai/data`, `services/ai/ml`), süreç
-[docs/AI_APPROACH.md](docs/AI_APPROACH.md)'de anlatılır.
-
-**Gerçek zamanlı.** SignalR ile rozet bildirimi (toast) ve canlı liderlik tablosu.
-
----
-
-## Proje yapısı
-
-```
-├─ docker-compose.yml       # tüm sistem: 4 servis + 4 DB + Redis + RabbitMQ + gateway + frontend
-├─ EVENTS.md                # event kataloğu ve payload sözleşmeleri
-├─ docs/
-│  ├─ AI_APPROACH.md        # model, eğitim verisi, süreç
-│  ├─ SEED_DATA.md          # demo verisi ve sabit GUID sözleşmesi
-│  └─ seed/                 # seed verisinin kaynak JSON'ları
-├─ gateway/                 # YARP — routing, JWT, rate limiting
-├─ services/
-│  ├─ identity/ campaign/ gamification/   # .NET 8 — Clean Architecture
-│  │   └─ src/{Domain, Application, Infrastructure, Api} + tests/
-│  ├─ ai/                   # FastAPI + scikit-learn (app/, ml/, data/)
-│  └─ shared/BuildingBlocks # ortak event zarfı, MassTransit, middleware
-└─ frontend/                # React 18 + Vite + TypeScript
-```
-
-Her servisin kendi `README.md` ve `.env.example` dosyası vardır.
-
----
-
-## Ekip
-
-| Kişi | Sorumluluk |
+| Dosya | İçerik |
 |---|---|
-| **Mali** | Tech Lead — mimari, backend iş mantığı, gateway |
-| **İskender** | Veritabanı şemaları, EF Core / SQLAlchemy modelleri, migration, seed, AI eğitim verisi |
-| **Osman** | Frontend (React), UI/UX, API tüketimi |
+| `Core_Principles.md` | Proje "anayasası" — mimari kurallar, sözleşmeler, güvenlik listesi, event kataloğu kaynağı |
+| `EVENTS.md` | Event kataloğu (RabbitMQ + SignalR) — payload alanları, tüketiciler |
+| `docs/AI_APPROACH.md` | AI yaklaşımı, model eğitimi, doğruluk takibi, graceful degradation |
+| `docs/SEED_DATA.md` | Demo veri seti (kullanıcılar, abone profilleri) |
+| `Mali.md` / `Mali_Plan.md` | Backend/mimari sorumluluğu — fazlı görev listesi |
