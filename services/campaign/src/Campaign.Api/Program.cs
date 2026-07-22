@@ -9,7 +9,7 @@ builder.Services.AddDbContext<CampaignDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddScoped<IDataSeeder, NoOpDataSeeder>();
+builder.Services.AddScoped<IDataSeeder, CampaignDataSeeder>();
 
 var app = builder.Build();
 
