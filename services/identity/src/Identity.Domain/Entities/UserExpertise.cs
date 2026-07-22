@@ -2,12 +2,24 @@ using Identity.Domain.Enums;
 
 namespace Identity.Domain.Entities;
 
-/// <summary>Personelin uzmanlik alanlari (N adet; akilli atama skorlamasinin girdisi).</summary>
+/// <summary>Iskender.md §1 <c>user_expertises</c> — personelin uzmanlık alanları (N adet).</summary>
 public class UserExpertise
 {
-    public Guid Id { get; set; }
-    public Guid UserId { get; set; }
-    public SegmentType SegmentType { get; set; }
+    protected UserExpertise()
+    {
+    }
 
-    public User User { get; set; } = null!;
+    private UserExpertise(Guid id, Guid userId, SegmentType segmentType)
+    {
+        Id = id;
+        UserId = userId;
+        SegmentType = segmentType;
+    }
+
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public SegmentType SegmentType { get; private set; }
+
+    public static UserExpertise Create(Guid userId, SegmentType segmentType) =>
+        new(Guid.NewGuid(), userId, segmentType);
 }

@@ -1,28 +1,51 @@
 namespace Identity.Domain.Entities;
 
+/// <summary>
+/// Iskender.md §1 <c>refresh_tokens</c>. Rotation zinciri <see cref="ReplacedById"/> ile kurulur;
+/// düz token ASLA saklanmaz — sadece SHA-256 hash'i (Core_Principles §10).
+/// </summary>
 public class RefreshToken
 {
-    public Guid Id { get; set; }
-    public Guid UserId { get; set; }
+    public const int ExpiryDays = 7;
 
-    /// <summary>SHA-256 hash — duz token ASLA saklanmaz.</summary>
-    public string TokenHash { get; set; } = null!;
+    protected RefreshToken()
+    {
+    }
 
-    public DateTimeOffset ExpiresAt { get; set; }
-    public DateTimeOffset? RevokedAt { get; set; }
+    private RefreshToken(Guid id, Guid userId, string tokenHash, DateTime expiresAt, string createdByIp)
+    {
+        Id = id;
+        UserId = userId;
+        TokenHash = tokenHash;
+        ExpiresAt = expiresAt;
+        CreatedByIp = createdByIp;
+    }
 
-    /// <summary>
-    /// Rotation zinciri: gecersiz kilinmis token tekrar kullanilirsa bu zincir uzerinden
-    /// theft tespiti yapilir ve kullanicinin tum oturumlari kapatilir.
-    /// </summary>
-    public Guid? ReplacedById { get; set; }
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public string TokenHash { get; private set; } = string.Empty;
+    public DateTime ExpiresAt { get; private set; }
+    public DateTime? RevokedAt { get; private set; }
+    public Guid? ReplacedById { get; private set; }
+    public string CreatedByIp { get; private set; } = string.Empty;
 
-    public string? CreatedByIp { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
+    public static RefreshToken Issue(Guid userId, string tokenHash, DateTime nowUtc, string createdByIp) =>
+        new(Guid.NewGuid(), userId, tokenHash, nowUtc.AddDays(ExpiryDays), createdByIp);
 
-    public User User { get; set; } = null!;
-    public RefreshToken? ReplacedBy { get; set; }
+    public bool IsActive(DateTime nowUtc) => RevokedAt is null && ExpiresAt > nowUtc;
 
-    public bool IsExpired => DateTimeOffset.UtcNow >= ExpiresAt;
-    public bool IsActive => RevokedAt is null && !IsExpired;
+    public bool IsExpired(DateTime nowUtc) => ExpiresAt <= nowUtc;
+
+    /// <summary>Rotation: eski token iptal edilir, zincir yeni token'a işaret eder.</summary>
+    public void RevokeAndReplace(DateTime nowUtc, Guid replacedById)
+    {
+        RevokedAt = nowUtc;
+        ReplacedById = replacedById;
+    }
+
+    /// <summary>Theft koruması: çalınmış (zaten iptal edilmiş) token tekrar kullanılırsa çağrılır.</summary>
+    public void Revoke(DateTime nowUtc)
+    {
+        RevokedAt = nowUtc;
+    }
 }

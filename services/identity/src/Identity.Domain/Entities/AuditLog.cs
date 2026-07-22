@@ -1,18 +1,42 @@
+using Identity.Domain.Enums;
+
 namespace Identity.Domain.Entities;
 
+/// <summary>
+/// Iskender.md §1 <c>audit_logs</c>. Case §3.4: her kayıtta kim/ne/ne zaman/nereden/sonuç/detay bulunmalı.
+/// </summary>
 public class AuditLog
 {
-    public long Id { get; set; }
+    protected AuditLog()
+    {
+    }
 
-    /// <summary>Basarisiz giris denemesinde kullanici bilinmeyebilir.</summary>
-    public Guid? UserId { get; set; }
+    private AuditLog(
+        Guid? userId, AuditActionType actionType, DateTime occurredAt,
+        string ipAddress, bool success, string? resourceId, string? details)
+    {
+        UserId = userId;
+        ActionType = actionType;
+        OccurredAt = occurredAt;
+        IpAddress = ipAddress;
+        Success = success;
+        ResourceId = resourceId;
+        Details = details;
+    }
 
-    public string ActionType { get; set; } = null!;
-    public DateTimeOffset OccurredAt { get; set; }
-    public string IpAddress { get; set; } = null!;
-    public bool Success { get; set; }
-    public string? ResourceId { get; set; }
+    public long Id { get; private set; }
+    public Guid? UserId { get; private set; }
+    public AuditActionType ActionType { get; private set; }
+    public DateTime OccurredAt { get; private set; }
+    public string IpAddress { get; private set; } = string.Empty;
+    public bool Success { get; private set; }
+    public string? ResourceId { get; private set; }
 
-    /// <summary>jsonb — islem detayi (orn. degisen rol, hedef kayit).</summary>
-    public string? Details { get; set; }
+    /// <summary>Serbest biçim JSON (jsonb) — ek bağlam (örn. ihlal edilen kural).</summary>
+    public string? Details { get; private set; }
+
+    public static AuditLog Create(
+        Guid? userId, AuditActionType actionType, DateTime occurredAtUtc,
+        string ipAddress, bool success, string? resourceId = null, string? details = null) =>
+        new(userId, actionType, occurredAtUtc, ipAddress, success, resourceId, details);
 }

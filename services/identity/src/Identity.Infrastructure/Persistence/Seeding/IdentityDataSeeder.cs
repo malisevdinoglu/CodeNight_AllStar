@@ -1,55 +1,58 @@
+using Identity.Application.Common;
 using Identity.Domain.Entities;
 using Identity.Domain.Enums;
-using Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Infrastructure.Persistence.Seeding;
 
 /// <summary>
 /// Demo kullanicilarini seed'ler (docs/SEED_DATA.md tablosuyla birebir).
-/// Idempotent: users doluysa hicbir sey yapmaz → iki kez "compose up" duplicate uretmez.
-/// Sifreler bcrypt (work factor 11, Core_Principles §10) ile hash'lenir; abonelerde sifre yok (OTP).
+/// Mali'nin zengin domain modelini (factory metotlari) ve IPasswordHasher'ini kullanir
+/// → seed'lenen hash, login'in Verify'ladigiyla birebir ayni (ayni work factor).
+/// Idempotent: users doluysa hicbir sey yapmaz. Sabit GUID'ler SeedIds'ten gelir
+/// (Campaign/Gamification ayni degerleri kullanir — cross-service seed koordinasyonu).
 /// </summary>
 public sealed class IdentityDataSeeder : IDataSeeder
 {
-    private const int BcryptWorkFactor = 11;
     private readonly IdentityDbContext _db;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public IdentityDataSeeder(IdentityDbContext db) => _db = db;
+    public IdentityDataSeeder(IdentityDbContext db, IPasswordHasher passwordHasher)
+    {
+        _db = db;
+        _passwordHasher = passwordHasher;
+    }
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         if (await _db.Users.AnyAsync(cancellationToken))
             return;
 
-        var now = DateTimeOffset.UtcNow;
-        string Hash(string pw) => BCrypt.Net.BCrypt.HashPassword(pw, BcryptWorkFactor);
+        var staffPassword = _passwordHasher.Hash("Uzman.2026!");
 
         var users = new List<User>
         {
-            new()
-            {
-                Id = SeedIds.Admin, FirstName = "Sistem", LastName = "Admin",
-                Email = "admin@campaigncell.com", PasswordHash = Hash("Admin.2026!"),
-                Role = UserRole.ADMIN, CreatedAt = now
-            },
-            new()
-            {
-                Id = SeedIds.Supervisor, FirstName = "Serkan", LastName = "Ünal",
-                Email = "supervizor@campaigncell.com", PasswordHash = Hash("Super.2026!"),
-                Role = UserRole.SUPERVIZOR, Region = "MARMARA", CreatedAt = now
-            },
-            Expert(SeedIds.ExpertDeniz, "Deniz", "Karaca", "deniz.karaca@campaigncell.com", "MARMARA",
-                now, SegmentType.RISKLI_KAYIP),
-            Expert(SeedIds.ExpertMerve, "Merve", "Aksoy", "merve.aksoy@campaigncell.com", "IC_ANADOLU",
-                now, SegmentType.YUKSEK_DEGER),
-            Expert(SeedIds.ExpertKaan, "Kaan", "Erdem", "kaan.erdem@campaigncell.com", "EGE",
-                now, SegmentType.YENI_ABONE, SegmentType.PASIF),
-            Expert(SeedIds.ExpertEce, "Ece", "Yıldız", "ece.yildiz@campaigncell.com", "AKDENIZ",
-                now, SegmentType.YUKSEK_DEGER, SegmentType.RISKLI_KAYIP, SegmentType.YENI_ABONE, SegmentType.PASIF),
+            User.CreateAdmin("Sistem", "Admin", "admin@campaigncell.com",
+                _passwordHasher.Hash("Admin.2026!"), SeedIds.Admin),
+
+            User.CreateStaff("Serkan", "Ünal", "supervizor@campaigncell.com",
+                _passwordHasher.Hash("Super.2026!"), Role.SUPERVIZOR, "MARMARA",
+                Array.Empty<SegmentType>(), SeedIds.Supervisor),
+
+            // 4 uzman — farkli uzmanlik kombinasyonlari (atama algoritmasi demoda farkli sonuclar versin)
+            User.CreateStaff("Deniz", "Karaca", "deniz.karaca@campaigncell.com", staffPassword,
+                Role.PERSONEL, "MARMARA", new[] { SegmentType.RISKLI_KAYIP }, SeedIds.ExpertDeniz),
+            User.CreateStaff("Merve", "Aksoy", "merve.aksoy@campaigncell.com", staffPassword,
+                Role.PERSONEL, "IC_ANADOLU", new[] { SegmentType.YUKSEK_DEGER }, SeedIds.ExpertMerve),
+            User.CreateStaff("Kaan", "Erdem", "kaan.erdem@campaigncell.com", staffPassword,
+                Role.PERSONEL, "EGE", new[] { SegmentType.YENI_ABONE, SegmentType.PASIF }, SeedIds.ExpertKaan),
+            User.CreateStaff("Ece", "Yıldız", "ece.yildiz@campaigncell.com", staffPassword,
+                Role.PERSONEL, "AKDENIZ",
+                new[] { SegmentType.YUKSEK_DEGER, SegmentType.RISKLI_KAYIP, SegmentType.YENI_ABONE, SegmentType.PASIF },
+                SeedIds.ExpertEce),
         };
 
-        // 10 abone — GSM'ler docs/seed/identity_users.json ile birebir, sifre yok (OTP 1234)
+        // 10 abone — sabit GUID'ler (Campaign subscriber_profiles ile eslesir), OTP 1234 ile girer
         var subscribers = new (string First, string Last, string Gsm)[]
         {
             ("Ahmet", "Yılmaz", "5321104501"),
@@ -66,29 +69,12 @@ public sealed class IdentityDataSeeder : IDataSeeder
         for (var i = 0; i < subscribers.Length; i++)
         {
             var s = subscribers[i];
-            users.Add(new User
-            {
-                Id = SeedIds.Subscriber(i + 1),
-                FirstName = s.First, LastName = s.Last, GsmNumber = s.Gsm,
-                Role = UserRole.MUSTERI, CreatedAt = now
-            });
+            var subscriber = User.CreateSubscriber(s.First, s.Last, s.Gsm, email: null, id: SeedIds.Subscriber(i + 1));
+            subscriber.Activate(); // demo: seed aboneleri mevcut musteri → dogrudan OTP ile girebilsin
+            users.Add(subscriber);
         }
 
         await _db.Users.AddRangeAsync(users, cancellationToken);
         await _db.SaveChangesAsync(cancellationToken);
-    }
-
-    private static User Expert(Guid id, string first, string last, string email, string region,
-        DateTimeOffset now, params SegmentType[] expertise)
-    {
-        var user = new User
-        {
-            Id = id, FirstName = first, LastName = last, Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Uzman.2026!", BcryptWorkFactor),
-            Role = UserRole.PERSONEL, Region = region, CreatedAt = now
-        };
-        foreach (var seg in expertise)
-            user.Expertises.Add(new UserExpertise { UserId = id, SegmentType = seg });
-        return user;
     }
 }

@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Campaign.Application\Campaign.Application.csproj" />
+    <ProjectReference Include="..\..\..\shared\BuildingBlocks\BuildingBlocks.csproj" />
   </ItemGroup>
 
 </Project>

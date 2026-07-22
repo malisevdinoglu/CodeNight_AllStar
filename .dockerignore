@@ -1,0 +1,21 @@
+# identity-api/campaign-api/gamification-api artik repo kokunu build context olarak
+# kullaniyor (BuildingBlocks erisimi icin). Bu dosya, o context'e gereksiz/buyuk
+# klasorlerin dahil edilmesini engeller (build hizi + guvenlik).
+
+.git/
+**/bin/
+**/obj/
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+
+# AI servisinin egitim verisi/model dosyalari .NET build'leriyle ilgisiz
+services/ai/data/
+services/ai/ml/*.joblib
+
+# Frontend build ciktilari
+frontend/dist/
+
+# Secrets
+.env

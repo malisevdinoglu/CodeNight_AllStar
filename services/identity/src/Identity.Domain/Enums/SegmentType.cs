@@ -1,8 +1,8 @@
 namespace Identity.Domain.Enums;
 
 /// <summary>
-/// Personelin uzmanlik alani. BELIRSIZ burada yoktur — o Campaign tarafinin
-/// AI-kapali fallback degeridir, bir uzmanlik alani degildir.
+/// Personelin uzmanlık alanı (Iskender.md §1: user_expertises.segment_type).
+/// Campaign/AI servislerindeki abone segmentiyle AYNI kelime kümesi — çeviri YASAK.
 /// </summary>
 public enum SegmentType
 {

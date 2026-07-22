@@ -1,0 +1,47 @@
+using FluentValidation;
+using MediatR;
+
+namespace BuildingBlocks.Behaviors;
+
+/// <summary>
+/// Her MediatR isteğinden önce ilgili FluentValidation validator'larını çalıştırır.
+/// Herhangi bir kural ihlal edilirse <see cref="ValidationException"/> fırlatır —
+/// bunu <see cref="Middleware.GlobalExceptionMiddleware"/> yakalayıp 400'e çevirir.
+/// Kayıt sırası önemli: Program.cs'te LoggingBehavior'dan SONRA kaydedilmeli ki
+/// loglama toplam süreyi (doğrulama dahil) ölçebilsin.
+/// </summary>
+public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : notnull
+{
+    private readonly IEnumerable<IValidator<TRequest>> _validators;
+
+    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
+    {
+        _validators = validators;
+    }
+
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
+    {
+        if (!_validators.Any())
+        {
+            return await next();
+        }
+
+        var context = new ValidationContext<TRequest>(request);
+
+        var failures = (await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context, cancellationToken))))
+            .SelectMany(result => result.Errors)
+            .Where(failure => failure is not null)
+            .ToList();
+
+        if (failures.Count != 0)
+        {
+            throw new ValidationException(failures);
+        }
+
+        return await next();
+    }
+}
