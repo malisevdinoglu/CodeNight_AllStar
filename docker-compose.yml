@@ -168,7 +168,7 @@ services:
     build: ./services/ai
     container_name: campaigncell-ai-api
     environment:
-      DATABASE_URL: postgresql://${AI_DB_USER}:${AI_DB_PASSWORD}@ai-db:5432/${AI_DB_NAME}
+      DATABASE_URL: postgresql+psycopg://${AI_DB_USER}:${AI_DB_PASSWORD}@ai-db:5432/${AI_DB_NAME}
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
