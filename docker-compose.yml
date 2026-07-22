@@ -1,0 +1,249 @@
+# CampaignCell — tek komut: docker compose up
+# Port sözleşmesi: Core_Principles.md §9 (birebir)
+name: campaigncell
+
+networks:
+  campaigncell:
+    driver: bridge
+
+volumes:
+  identity-db-data:
+  campaign-db-data:
+  ai-db-data:
+  gamification-db-data:
+
+services:
+  # ================= Altyapı =================
+  identity-db:
+    image: postgres:16-alpine
+    container_name: campaigncell-identity-db
+    environment:
+      POSTGRES_USER: ${IDENTITY_DB_USER}
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD}
+      POSTGRES_DB: ${IDENTITY_DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - identity-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${IDENTITY_DB_USER} -d ${IDENTITY_DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [campaigncell]
+
+  campaign-db:
+    image: postgres:16-alpine
+    container_name: campaigncell-campaign-db
+    environment:
+      POSTGRES_USER: ${CAMPAIGN_DB_USER}
+      POSTGRES_PASSWORD: ${CAMPAIGN_DB_PASSWORD}
+      POSTGRES_DB: ${CAMPAIGN_DB_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - campaign-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CAMPAIGN_DB_USER} -d ${CAMPAIGN_DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [campaigncell]
+
+  ai-db:
+    image: postgres:16-alpine
+    container_name: campaigncell-ai-db
+    environment:
+      POSTGRES_USER: ${AI_DB_USER}
+      POSTGRES_PASSWORD: ${AI_DB_PASSWORD}
+      POSTGRES_DB: ${AI_DB_NAME}
+    ports:
+      - "5435:5432"
+    volumes:
+      - ai-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AI_DB_USER} -d ${AI_DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [campaigncell]
+
+  gamification-db:
+    image: postgres:16-alpine
+    container_name: campaigncell-gamification-db
+    environment:
+      POSTGRES_USER: ${GAMIFICATION_DB_USER}
+      POSTGRES_PASSWORD: ${GAMIFICATION_DB_PASSWORD}
+      POSTGRES_DB: ${GAMIFICATION_DB_NAME}
+    ports:
+      - "5436:5432"
+    volumes:
+      - gamification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GAMIFICATION_DB_USER} -d ${GAMIFICATION_DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [campaigncell]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: campaigncell-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [campaigncell]
+
+  redis:
+    image: redis:7-alpine
+    container_name: campaigncell-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [campaigncell]
+
+  # ================= Servisler =================
+  identity-api:
+    build: ./services/identity
+    container_name: campaigncell-identity-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__Default: Host=identity-db;Port=5432;Database=${IDENTITY_DB_NAME};Username=${IDENTITY_DB_USER};Password=${IDENTITY_DB_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5001:8080"
+    depends_on:
+      identity-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks: [campaigncell]
+
+  campaign-api:
+    build: ./services/campaign
+    container_name: campaigncell-campaign-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__Default: Host=campaign-db;Port=5432;Database=${CAMPAIGN_DB_NAME};Username=${CAMPAIGN_DB_USER};Password=${CAMPAIGN_DB_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5002:8080"
+    depends_on:
+      campaign-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks: [campaigncell]
+
+  ai-api:
+    build: ./services/ai
+    container_name: campaigncell-ai-api
+    environment:
+      DATABASE_URL: postgresql://${AI_DB_USER}:${AI_DB_PASSWORD}@ai-db:5432/${AI_DB_NAME}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5003:8000"
+    depends_on:
+      ai-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks: [campaigncell]
+
+  gamification-api:
+    build: ./services/gamification
+    container_name: campaigncell-gamification-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__Default: Host=gamification-db;Port=5432;Database=${GAMIFICATION_DB_NAME};Username=${GAMIFICATION_DB_USER};Password=${GAMIFICATION_DB_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      REDIS_HOST: redis
+    ports:
+      - "5004:8080"
+    depends_on:
+      gamification-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks: [campaigncell]
+
+  # ================= Gateway + Frontend =================
+  gateway:
+    build: ./gateway
+    container_name: campaigncell-gateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    ports:
+      - "8080:8080"
+    depends_on:
+      identity-api:
+        condition: service_healthy
+      campaign-api:
+        condition: service_healthy
+      ai-api:
+        condition: service_healthy
+      gamification-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks: [campaigncell]
+
+  frontend:
+    build: ./frontend
+    container_name: campaigncell-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks: [campaigncell]
