@@ -1,7 +1,22 @@
 prompts.md
 Promts.md
 Prompts.md
-.DS_Store
-.venv/
+
+# --- Build ciktilari ---
+bin/
+obj/
+*.user
+node_modules/
+dist/
 __pycache__/
 *.pyc
+.pytest_cache/
+.venv/
+
+# --- Secrets ---
+.env
+
+# --- IDE / OS ---
+.vs/
+.idea/
+.DS_Store
