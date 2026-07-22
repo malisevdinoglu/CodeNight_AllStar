@@ -1,5 +1,15 @@
-# GECICI STUB — Osman'in React 18 + Vite uygulamasi bu Dockerfile'i degistirecek.
-# Port sozlesmesi ayni kalmali: container icinde 80 (compose 3000:80).
+FROM node:22-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
 FROM nginx:alpine
-COPY index.html /usr/share/nginx/html/index.html
+
+COPY --from=build /app/dist /usr/share/nginx/html
+
 EXPOSE 80

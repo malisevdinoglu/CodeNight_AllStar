@@ -1,5 +1,6 @@
 import { CheckCircle2, Database, Network, Palette } from 'lucide-react'
 import { appConfig } from '../app/config'
+import { useMockReadiness } from '../hooks/useMockReadiness'
 import { tr } from '../i18n/tr'
 
 const readinessItems = [
@@ -30,6 +31,9 @@ const readinessItems = [
 ] as const
 
 export function PhaseOnePage() {
+  const mockReadiness = useMockReadiness()
+  const pendingQueueCount = mockReadiness.data?.pendingQueue.length ?? 0
+
   return (
     <section className="space-y-6">
       <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -77,6 +81,24 @@ export function PhaseOnePage() {
             </article>
           )
         })}
+      </div>
+
+      <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-950">Mock API kontrolu</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Dashboard sozlesmesi TanStack Query ile API katmanindan okunuyor.
+            </p>
+          </div>
+          <span className="rounded-sm bg-brand-navy px-3 py-2 text-sm font-bold text-white">
+            {mockReadiness.isLoading
+              ? 'Kontrol ediliyor'
+              : mockReadiness.isError
+                ? 'Backend bekleniyor'
+                : `${pendingQueueCount} kuyruk vakasi`}
+          </span>
+        </div>
       </div>
     </section>
   )
