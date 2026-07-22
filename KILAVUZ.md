@@ -37,9 +37,11 @@ git add .
 # 2. Yaptığın işi anlatan kısa bir mesajla kaydet
 git commit -m "Buraya ne yaptığını yaz (Örn: Login arayüzü tasarlandı)"
 
-ADIM 3: Güvenlik Kontrolü ve Push (EN KRİTİK ADIM)
-Sen kod yazarken bir başkasının kodu master'a eklenmiş olabilir. Kodunu GitHub'a yollamadan önce çakışma (conflict) var mı diye kontrol et:
 
+
+
+ ### ADIM 3: Güvenlik Kontrolü ve Push (EN KRİTİK ADIM)
+Sen kod yazarken bir başkasının kodu master'a eklenmiş olabilir. Kodunu GitHub'a yollamadan önce çakışma (conflict) var mı diye kontrol et:
 
 # Güncel master'ı kendi branch'ine entegre et
 git pull origin master
@@ -55,7 +57,9 @@ git add .
 git commit -m "Conflict çözüldü"
 git push origin <kendi-adiniz>-dev
 
-ADIM 4: Pull Request (PR) Aç
+
+
+### ADIM 4: Pull Request (PR) Aç
 1- GitHub web sitesine gir.
 2- Ekrandaki yeşil renkli "Compare & pull request" butonuna bas.
 3- Hedef branch'in master olduğundan emin ol.
