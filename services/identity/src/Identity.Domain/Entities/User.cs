@@ -51,18 +51,21 @@ public class User
     public IReadOnlyCollection<UserExpertise> Expertises => _expertises.AsReadOnly();
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
-    /// <summary>Abone kaydı: GSM + OTP ile aktive edilene kadar pasif (case §3.1).</summary>
-    public static User CreateSubscriber(string firstName, string lastName, string gsmNumber, string? email)
+    /// <summary>Abone kaydı: GSM + OTP ile aktive edilene kadar pasif (case §3.1).
+    /// <paramref name="id"/> yalnızca deterministik seed için verilir (docs/SEED_DATA.md sabit GUID
+    /// sözleşmesi); normal kayıtta null → yeni GUID üretilir.</summary>
+    public static User CreateSubscriber(string firstName, string lastName, string gsmNumber, string? email, Guid? id = null)
     {
         return new User(
-            Guid.NewGuid(), firstName, lastName, Role.MUSTERI,
+            id ?? Guid.NewGuid(), firstName, lastName, Role.MUSTERI,
             gsmNumber, email, passwordHash: null, region: null, isActive: false);
     }
 
-    /// <summary>Admin tarafından oluşturulan personel/süpervizör (case §3.1) — e-posta+şifre ile hemen aktif.</summary>
+    /// <summary>Admin tarafından oluşturulan personel/süpervizör (case §3.1) — e-posta+şifre ile hemen aktif.
+    /// <paramref name="id"/> yalnızca deterministik seed içindir (bkz. CreateSubscriber).</summary>
     public static User CreateStaff(
         string firstName, string lastName, string email, string passwordHash,
-        Role role, string region, IEnumerable<SegmentType> expertise)
+        Role role, string region, IEnumerable<SegmentType> expertise, Guid? id = null)
     {
         if (role is not (Role.PERSONEL or Role.SUPERVIZOR))
         {
@@ -70,7 +73,7 @@ public class User
         }
 
         var user = new User(
-            Guid.NewGuid(), firstName, lastName, role,
+            id ?? Guid.NewGuid(), firstName, lastName, role,
             gsmNumber: null, email, passwordHash, region, isActive: true);
 
         foreach (var segment in expertise)
@@ -81,11 +84,11 @@ public class User
         return user;
     }
 
-    /// <summary>Seed için admin kullanıcısı.</summary>
-    public static User CreateAdmin(string firstName, string lastName, string email, string passwordHash)
+    /// <summary>Seed için admin kullanıcısı. <paramref name="id"/> deterministik seed içindir (bkz. CreateSubscriber).</summary>
+    public static User CreateAdmin(string firstName, string lastName, string email, string passwordHash, Guid? id = null)
     {
         return new User(
-            Guid.NewGuid(), firstName, lastName, Role.ADMIN,
+            id ?? Guid.NewGuid(), firstName, lastName, Role.ADMIN,
             gsmNumber: null, email, passwordHash, region: null, isActive: true);
     }
 

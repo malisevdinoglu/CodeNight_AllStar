@@ -35,7 +35,7 @@ builder.Services.AddDbContext<CampaignDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddScoped<IDataSeeder, NoOpDataSeeder>();
+builder.Services.AddScoped<IDataSeeder, CampaignDataSeeder>();
 
 // ---- Infrastructure: repository/unit-of-work/dis servis istemcileri (Faz 5) ----
 builder.Services.AddCampaignInfrastructure(builder.Configuration);

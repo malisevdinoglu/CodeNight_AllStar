@@ -35,6 +35,26 @@ Tüm aboneler (10 adet) OTP `1234` ile girer — tam liste `seed/identity_users.
   KRITIK vakanın SLA'sı "30 dk kaldı" görünür — demo her zaman canlı hissettirir.
 - **`expectedSegment` alanı** doğrulama içindir: AI modeli seed profillerini sınıflandırdığında
   beklenen segmenti bulmalı (entegrasyon testi verisi olarak da kullanılır).
-- **Uzman ID eşlemesi e-posta üzerinden**: servisler arası FK olmadığı için seeder'lar
-  Identity seed'inin ürettiği UUID'leri e-posta anahtarıyla eşler (compose sırası: identity önce).
+- **Servisler arası ID koordinasyonu — sabit (deterministik) GUID'ler:** Database-per-service'te
+  bir servis diğerinin ürettiği ID'yi runtime'da soramaz. Bu yüzden demo verisi önceden
+  koordine edilmiş sabit GUID'lerle seed'lenir. Identity abone/uzmanı şu GUID'lerle üretir,
+  Campaign (`subscriber_profiles`) ve Gamification (`expert_scores`) **aynı** sabitleri kullanır
+  (FK değil — cross-service değer eşleşmesi). Her servisin `Persistence/Seeding/SeedIds.cs`'i
+  bu tabloyu birebir taşır; değer değişirse üç seeder birden güncellenir:
+
+  | Varlık | Sabit GUID |
+  |---|---|
+  | Admin | `a0000000-…-000000000001` |
+  | Süpervizör | `50000000-…-000000000001` |
+  | Uzman Deniz (RISKLI_KAYIP) | `e0000000-…-000000000001` |
+  | Uzman Merve (YUKSEK_DEGER) | `e0000000-…-000000000002` |
+  | Uzman Kaan (YENI_ABONE+PASIF) | `e0000000-…-000000000003` |
+  | Uzman Ece (tüm segmentler) | `e0000000-…-000000000004` |
+  | Abone 1–10 | `b0000000-…-0000000000NN` (NN = 01–10) |
+
+- **Seeder'lar C# içinde (dosya IO yok):** Docker build context servis klasörüyle sınırlı
+  (`docs/seed` image'a girmez); bu yüzden runtime seed verisi her servisin `Seeding/*DataSeeder.cs`'inde
+  gömülüdür. `docs/seed/*.json` insan-okunur tasarım referansı ve bu tablonun kaynağıdır.
+- **Vaka zamanları relative:** SLA sabitleri `createdAt`'e eklenir (KRITIK +2s, YUKSEK +8s, ORTA +24s)
+  → seed ne zaman koşarsa koşsun KRITIK vaka ~30 dk kalmış görünür.
 - AI `model_metadata` seed'i JSON'dan değil `ml/metrics.json`'dan gelir (eğitim çıktısı — tek kaynak).

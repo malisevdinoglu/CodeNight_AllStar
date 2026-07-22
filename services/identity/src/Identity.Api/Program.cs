@@ -38,7 +38,7 @@ builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddScoped<IDataSeeder, NoOpDataSeeder>();
+builder.Services.AddScoped<IDataSeeder, IdentityDataSeeder>();
 
 // ---- Application katmani: repository/security/unit-of-work (Faz 4) ----
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
