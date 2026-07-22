@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Campaign.Domain\Campaign.Domain.csproj" />
+    <ProjectReference Include="..\..\..\shared\BuildingBlocks\BuildingBlocks.csproj" />
   </ItemGroup>
 
 </Project>

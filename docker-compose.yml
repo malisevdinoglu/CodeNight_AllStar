@@ -116,7 +116,9 @@ services:
 
   # ================= Servisler =================
   identity-api:
-    build: ./services/identity
+    build:
+      context: .
+      dockerfile: services/identity/Dockerfile
     container_name: campaigncell-identity-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
@@ -125,6 +127,7 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       Jwt__Secret: ${JWT_SECRET}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     ports:
       - "5001:8080"
     depends_on:
@@ -141,7 +144,9 @@ services:
     networks: [campaigncell]
 
   campaign-api:
-    build: ./services/campaign
+    build:
+      context: .
+      dockerfile: services/campaign/Dockerfile
     container_name: campaigncell-campaign-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
@@ -188,7 +193,9 @@ services:
     networks: [campaigncell]
 
   gamification-api:
-    build: ./services/gamification
+    build:
+      context: .
+      dockerfile: services/gamification/Dockerfile
     container_name: campaigncell-gamification-api
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
