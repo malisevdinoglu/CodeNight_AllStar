@@ -14,10 +14,21 @@ public sealed class UserRepository : IUserRepository
         _dbContext = dbContext;
     }
 
+    // Iki kardes collection Include (Expertises + RefreshTokens) tek sorguda (SingleQuery)
+    // calisirsa SQL tarafinda cartesian product olusur (EF'in kendi uyarisi: "loading related
+    // collections for more than one collection navigation"). Bu durumda LEFT JOIN satirlari
+    // capraz carpilir ve EF'in row-shaping/identity-resolution mantigi, yeni eklenen bir
+    // RefreshToken'i (login sirasinda user.IssueRefreshToken ile Guid.NewGuid() alan YENI bir
+    // entity) hatali sekilde "zaten izlenen" bir satirla eslestirip Added yerine Modified olarak
+    // isaretleyebiliyor — DbUpdateConcurrencyException (0 rows affected, cunku o id DB'de yok).
+    // Canli testte dogrulandi: login her zaman 500 donuyordu. AsSplitQuery() iki collection'i
+    // ayri SQL sorgulariyla yukleyerek cartesian product'i ve bu identity-resolution hatasini
+    // ortadan kaldirir.
     private IQueryable<User> WithAggregate() =>
         _dbContext.Users
             .Include(u => u.Expertises)
-            .Include(u => u.RefreshTokens);
+            .Include(u => u.RefreshTokens)
+            .AsSplitQuery();
 
     public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         WithAggregate().FirstOrDefaultAsync(u => u.Id == id, cancellationToken);

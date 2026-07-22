@@ -63,6 +63,11 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // BUG FIX (identity-api'de canli testte bulundu): statik
+        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear() tek basina guvenilir degil.
+        // MapInboundClaims = false, "sub"/"role" claim adlarinin ham kalmasini kesin olarak garanti eder.
+        options.MapInboundClaims = false;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -138,6 +143,43 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+// ---- Swagger/OpenAPI (Mali_Plan.md Faz 9: her .NET serviste /swagger) ----
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "CampaignCell Gamification API",
+        Version = "v1",
+        Description = "Rozet/liderlik tablosu/puan sistemi, SignalR gerceklestirme (Core_Principles §8).",
+    });
+
+    var jwtScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "JWT Bearer token. Ornek: 'Bearer eyJhbGciOi...' (Identity /auth/login yanitindaki accessToken).",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+    };
+    options.AddSecurityDefinition("Bearer", jwtScheme);
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer",
+                },
+            },
+            Array.Empty<string>()
+        },
+    });
+});
+
 // ---- SignalR: badge.earned / points.updated SUNUCU->İSTEMCİ push (Core_Principles §8) ----
 builder.Services.AddSingleton<IUserIdProvider, SubClaimUserIdProvider>();
 builder.Services.AddScoped<IGameNotifier, GameNotifier>();
@@ -173,6 +215,12 @@ var app = builder.Build();
 await app.Services.MigrateAndSeedAsync();
 
 app.UseCampaignCellExceptionHandling("GAM");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "Gamification API v1"));
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

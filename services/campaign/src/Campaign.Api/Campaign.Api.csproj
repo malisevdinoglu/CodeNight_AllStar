@@ -14,6 +14,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Serilog.Formatting.Compact" Version="2.0.0" />
+    <!-- v9.0.6 sabit: v10+ Microsoft.OpenApi v2'ye gecti, Microsoft.OpenApi.Models namespace'ini
+         kaldirip API'yi kirdi (AddSecurityRequirement imzasi degisti). v9.0.6 net8.0 + eski
+         namespace ile calisan son surum (bkz. Swashbuckle resmi migration rehberi). -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>

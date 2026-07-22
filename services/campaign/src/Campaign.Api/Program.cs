@@ -65,6 +65,11 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // BUG FIX (identity-api'de canli testte bulundu): statik
+        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear() tek basina guvenilir degil.
+        // MapInboundClaims = false, "sub"/"role" claim adlarinin ham kalmasini kesin olarak garanti eder.
+        options.MapInboundClaims = false;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -128,6 +133,43 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+// ---- Swagger/OpenAPI (Mali_Plan.md Faz 9: her .NET serviste /swagger) ----
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "CampaignCell Campaign API",
+        Version = "v1",
+        Description = "Kampanya/optimizasyon vakasi/teklif yonetimi, state machine, SLA (Core_Principles §7).",
+    });
+
+    var jwtScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "JWT Bearer token. Ornek: 'Bearer eyJhbGciOi...' (Identity /auth/login yanitindaki accessToken).",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+    };
+    options.AddSecurityDefinition("Bearer", jwtScheme);
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer",
+                },
+            },
+            Array.Empty<string>()
+        },
+    });
+});
+
 // ---- Event bus + Outbox (Core_Principles §2/§8): DB commit + publish atomik ----
 builder.Services.AddCampaignCellMassTransit<CampaignDbContext>(builder.Configuration);
 
@@ -139,6 +181,12 @@ var app = builder.Build();
 await app.Services.MigrateAndSeedAsync();
 
 app.UseCampaignCellExceptionHandling("CMP");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "Campaign API v1"));
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

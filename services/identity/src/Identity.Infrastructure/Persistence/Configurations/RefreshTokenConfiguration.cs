@@ -12,7 +12,12 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         builder.ToTable("refresh_tokens");
 
         builder.HasKey(t => t.Id);
-        builder.Property(t => t.Id).ValueGeneratedOnAdd();
+        // BUG FIX: bkz. UserConfiguration.cs ayni satir aciklamasi — Id RefreshToken.Issue()
+        // icinde client-side Guid.NewGuid() ile uretiliyor, ValueGeneratedNever() gerekiyordu.
+        // Bu tam olarak login'in 500 dondugu satirdi: yeni token izlenen User'in
+        // RefreshTokens navigation'ina eklenip SaveChanges'te UPDATE ... WHERE id=<yeniGuid>
+        // olarak gonderiliyor, 0 satir etkileniyordu.
+        builder.Property(t => t.Id).ValueGeneratedNever();
 
         builder.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();
         builder.Property(t => t.CreatedByIp).HasMaxLength(45);

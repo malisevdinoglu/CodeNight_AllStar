@@ -1,0 +1,114 @@
+name: CI
+
+# Core_Principles §12 Definition of Done + Mali_Plan.md Faz 9: her push/PR'da
+# tum .NET servisler build+test, AI servisi pytest, frontend build calisir.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  dotnet:
+    name: dotnet build+test (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: identity
+            solution: services/identity/Identity.sln
+          - service: campaign
+            solution: services/campaign/Campaign.sln
+          - service: gamification
+            solution: services/gamification/Gamification.sln
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore ${{ matrix.solution }}
+
+      - name: Build
+        run: dotnet build ${{ matrix.solution }} --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test ${{ matrix.solution }} --no-build --configuration Release --logger "console;verbosity=normal"
+
+  gateway:
+    name: dotnet build (gateway)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore gateway/Gateway.sln
+
+      - name: Build
+        run: dotnet build gateway/Gateway.sln --no-restore --configuration Release
+
+  ai:
+    name: pytest (ai)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ai
+    env:
+      # Testler icin zararsiz varsayilanlar - gercek bir Postgres/RabbitMQ'ya baglanilmaz
+      # (SQLAlchemy engine olusturma tembel'dir, testler DB katmanini mock'lar).
+      DATABASE_URL: postgresql+psycopg://ai_user:test@localhost:5432/ai_db_test
+      RABBITMQ_HOST: localhost
+      RABBITMQ_USER: campaigncell
+      RABBITMQ_PASSWORD: test
+      INTERNAL_API_KEY: ci-test-key
+      MODEL_PATH: ml/model.joblib
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: services/ai/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run pytest
+        run: pytest -v
+
+  frontend:
+    name: npm build (frontend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
