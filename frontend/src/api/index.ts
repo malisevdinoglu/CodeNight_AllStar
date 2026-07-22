@@ -1,0 +1,8 @@
+export { adminApi } from './admin.api'
+export { authApi } from './auth.api'
+export { campaignApi } from './campaign.api'
+export { caseApi } from './case.api'
+export { dashboardApi } from './dashboard.api'
+export { gameApi } from './game.api'
+export { offerApi } from './offer.api'
+export type * from './types'
