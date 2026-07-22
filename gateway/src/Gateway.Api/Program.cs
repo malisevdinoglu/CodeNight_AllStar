@@ -26,6 +26,14 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // BUG FIX (identity-api'de canli testte bulundu): statik
+        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear() tek basina guvenilir degil —
+        // .NET 8'in JwtBearer'i JsonWebTokenHandler kullanabiliyor ve bu statik haritadan
+        // bagimsiz calisabiliyor. MapInboundClaims = false, "sub"/"role" claim adlarinin ham
+        // kalmasini (asagidaki X-User-Id/X-User-Role header enjeksiyonunun dogru calismasi icin
+        // de kritik) kesin olarak garanti eder.
+        options.MapInboundClaims = false;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

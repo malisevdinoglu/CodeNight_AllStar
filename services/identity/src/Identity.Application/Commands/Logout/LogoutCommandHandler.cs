@@ -1,3 +1,4 @@
+using BuildingBlocks.Exceptions;
 using Identity.Application.Common;
 using Identity.Domain.Entities;
 using Identity.Domain.Enums;
@@ -42,6 +43,15 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
         if (tokenRow is null)
         {
             return;
+        }
+
+        // Core_Principles §10 IDOR kontrolü: refresh token BASKA bir kullaniciya aitse (ör.
+        // calinmis/tahmin edilmis bir token'i baska bir hesaptan giris yapmis saldirgan logout
+        // icin gonderirse) sessizce iptal ETME - bu, gercek sahibinin oturumunu saldirganin
+        // kontrol edebilecegi bir yan kanal olur. Cagiranin kendi token'i olmali.
+        if (_requestContext.UserId != tokenRow.UserId)
+        {
+            throw new ForbiddenException("FORBIDDEN_TOKEN_ACCESS", "Bu token size ait degil.");
         }
 
         var now = _dateTimeProvider.UtcNow;
