@@ -5,8 +5,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Gamification.Infrastructure.Persistence.Seeding;
 
 /// <summary>
-/// Demo puan/rozet verisini seed'ler (docs/SEED_DATA.md ile birebir).
-/// Idempotent: badges doluysa hicbir sey yapmaz.
+/// Demo uzman puan + kazanilmis rozet verisini seed'ler (docs/SEED_DATA.md ile birebir).
+/// NOT: Rozet KATALOGU'nu bu seeder seed ETMEZ — onu BadgeCatalogSeeder yapar
+/// (MigrationExtensions bu seeder'dan ONCE cagirir). Bu seeder yalnizca expert_scores +
+/// expert_badges'i doldurur; guard bu yuzden ExpertScores'a bakar (Badges'a DEGIL —
+/// aksi halde BadgeCatalogSeeder rozetleri yazdiktan sonra guard hep erken donerdi).
 /// ExpertId'ler Identity ile ayni sabit GUID'ler (cross-service, FK degil).
 /// Uzmanlar bilincli olarak dort ayri seviyeye dagitildi (Bronz/Gumus/Altin) → tum seviyeler ekranda gorunur.
 /// Redis liderlik tablosu bu expert_scores'tan turetilir (servis acilisinda), burada seed'lenmez.
@@ -24,17 +27,8 @@ public sealed class GamificationDataSeeder : IDataSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        if (await _db.Badges.AnyAsync(cancellationToken))
+        if (await _db.ExpertScores.AnyAsync(cancellationToken))
             return;
-
-        _db.Badges.AddRange(
-            new Badge { Code = BadgeCodes.IlkKampanya, Name = "İlk Kampanya", Description = "İlk optimizasyonu tamamlama" },
-            new Badge { Code = BadgeCodes.HizUstasi, Name = "Hız Ustası", Description = "2 saatin altında 10 optimizasyon" },
-            new Badge { Code = BadgeCodes.DonusumKrali, Name = "Dönüşüm Kralı", Description = "10 kampanyada hedef aşımı" },
-            new Badge { Code = BadgeCodes.Maratoncu, Name = "Maratoncu", Description = "Bir günde 20 optimizasyon" },
-            new Badge { Code = BadgeCodes.ChurnAvcisi, Name = "Churn Avcısı", Description = "10 RISKLI_KAYIP vakayı kurtarma" },
-            new Badge { Code = BadgeCodes.Uzman, Name = "Uzman", Description = "Tek segmentte 50 optimizasyon" });
-        await _db.SaveChangesAsync(cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
 
