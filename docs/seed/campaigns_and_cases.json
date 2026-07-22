@@ -1,0 +1,55 @@
+{
+  "_comment": "Campaign DB seed'i: 2 hazır kampanya + 3 optimizasyon vakası (Iskender.md §6). Vaka durumları karışık; biri KRITIK ve SLA'sı yaklaşmış — süpervizör dashboard'u dolu görünsün. createdAt/slaDeadline seeder'da 'now' bazlı hesaplanır (relative saat).",
+  "campaigns": [
+    {
+      "campaignNumber": "CMP-2026-000001",
+      "title": "Yaz Fırsatı: 10GB Ek Paket %40 İndirim",
+      "type": "EK_PAKET",
+      "targetSegment": "YUKSEK_DEGER",
+      "discountRate": 40.0,
+      "validDays": 30,
+      "createdBy": "supervisor"
+    },
+    {
+      "campaignNumber": "CMP-2026-000002",
+      "title": "Bizi Bırakma: Sadakat Tarifesinde 6 Ay %50",
+      "type": "SADAKAT",
+      "targetSegment": "RISKLI_KAYIP",
+      "discountRate": 50.0,
+      "validDays": 45,
+      "createdBy": "supervisor"
+    }
+  ],
+  "optimizationCases": [
+    {
+      "caseNumber": "OPT-2026-000001",
+      "campaignNumber": "CMP-2026-000002",
+      "segment": "RISKLI_KAYIP",
+      "priority": "KRITIK",
+      "status": "ATANDI",
+      "assignedExpert": "deniz.karaca@campaigncell.com",
+      "createdHoursAgo": 1.5,
+      "_note": "SLA 2 saat → deadline'a 30 dk kalmış, dashboard'da kırmızı"
+    },
+    {
+      "caseNumber": "OPT-2026-000002",
+      "campaignNumber": "CMP-2026-000001",
+      "segment": "YUKSEK_DEGER",
+      "priority": "YUKSEK",
+      "status": "OPTIMIZE_EDILIYOR",
+      "assignedExpert": "merve.aksoy@campaigncell.com",
+      "createdHoursAgo": 3,
+      "_note": "Aktif çalışılan vaka — uzman panelinde görünür"
+    },
+    {
+      "caseNumber": "OPT-2026-000003",
+      "campaignNumber": "CMP-2026-000001",
+      "segment": "BELIRSIZ",
+      "priority": "ORTA",
+      "status": "YENI",
+      "assignedExpert": null,
+      "createdHoursAgo": 0.5,
+      "_note": "AI kapaliyken olusmus senaryo — manuel atama kuyrugunda (graceful degradation demosu)"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "_comment": "Gamification DB seed'i: 4 uzmana dört farklı seviye (Bronz/Gümüş/Altın sınırları görünsün), 2-3 rozet, dün+bugün leaderboard hareketleri (Iskender.md §6).",
+  "expertScores": [
+    {
+      "expert": "deniz.karaca@campaigncell.com", "displayName": "Deniz Karaca",
+      "totalPoints": 1600, "completedCaseCount": 92, "fastCompletionCount": 14,
+      "targetExceededCount": 11, "riskliKayipSavedCount": 9,
+      "badges": ["ILK_KAMPANYA", "DONUSUM_KRALI"],
+      "_level": "ALTIN (1500-2999)"
+    },
+    {
+      "expert": "merve.aksoy@campaigncell.com", "displayName": "Merve Aksoy",
+      "totalPoints": 750, "completedCaseCount": 45, "fastCompletionCount": 8,
+      "targetExceededCount": 5, "riskliKayipSavedCount": 1,
+      "badges": ["ILK_KAMPANYA"],
+      "_level": "GUMUS (500-1499)"
+    },
+    {
+      "expert": "kaan.erdem@campaigncell.com", "displayName": "Kaan Erdem",
+      "totalPoints": 350, "completedCaseCount": 21, "fastCompletionCount": 3,
+      "targetExceededCount": 2, "riskliKayipSavedCount": 0,
+      "badges": ["ILK_KAMPANYA"],
+      "_level": "BRONZ (0-499)"
+    },
+    {
+      "expert": "ece.yildiz@campaigncell.com", "displayName": "Ece Yıldız",
+      "totalPoints": 80, "completedCaseCount": 6, "fastCompletionCount": 1,
+      "targetExceededCount": 0, "riskliKayipSavedCount": 2,
+      "badges": [],
+      "_level": "BRONZ — yeni başlamış"
+    }
+  ],
+  "leaderboardSeed": {
+    "_comment": "Redis sorted set: leaderboard:daily:<bugün> ve leaderboard:weekly:<hafta>. Dün + bugün için puan hareketi üret ki günlük/haftalık tablolar farklı görünsün.",
+    "daily": [
+      { "expert": "deniz.karaca@campaigncell.com", "points": 45 },
+      { "expert": "merve.aksoy@campaigncell.com", "points": 30 },
+      { "expert": "ece.yildiz@campaigncell.com", "points": 10 }
+    ],
+    "yesterday": [
+      { "expert": "merve.aksoy@campaigncell.com", "points": 55 },
+      { "expert": "deniz.karaca@campaigncell.com", "points": 25 },
+      { "expert": "kaan.erdem@campaigncell.com", "points": 20 }
+    ]
+  },
+  "badgeCatalog": [
+    { "code": "ILK_KAMPANYA",  "name": "İlk Kampanya",  "description": "İlk optimizasyonu tamamlama" },
+    { "code": "HIZ_USTASI",    "name": "Hız Ustası",    "description": "2 saatin altında 10 optimizasyon" },
+    { "code": "DONUSUM_KRALI", "name": "Dönüşüm Kralı", "description": "10 kampanyada hedef aşımı" },
+    { "code": "MARATONCU",     "name": "Maratoncu",     "description": "Bir günde 20 optimizasyon" },
+    { "code": "CHURN_AVCISI",  "name": "Churn Avcısı",  "description": "10 RISKLI_KAYIP vakayı kurtarma" },
+    { "code": "UZMAN",         "name": "Uzman",         "description": "Tek segmentte 50 optimizasyon" }
+  ]
+}
