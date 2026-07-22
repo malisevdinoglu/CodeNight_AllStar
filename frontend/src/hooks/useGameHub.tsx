@@ -78,7 +78,7 @@ export function useGameHub() {
 
           queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
           queryClient.invalidateQueries({ queryKey: ['game-profile', user.id] })
-          toast.success(`Puan guncellendi: ${payload.delta > 0 ? '+' : ''}${payload.delta}`)
+          toast.success(`Puan güncellendi: ${payload.delta > 0 ? '+' : ''}${payload.delta}`)
         })
 
         connection.onreconnecting(() => {

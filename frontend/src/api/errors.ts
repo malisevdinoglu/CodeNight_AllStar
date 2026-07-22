@@ -20,7 +20,7 @@ export function getApiError(error: unknown): ApiError {
 
   return {
     code: 'FE_UNKNOWN_ERROR',
-    message: 'Beklenmeyen bir hata olustu.',
+    message: 'Beklenmeyen bir hata oluştu.',
     details: [],
   }
 }

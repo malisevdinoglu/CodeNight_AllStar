@@ -53,7 +53,7 @@ export function QueuePage() {
       },
       {
         key: 'priority',
-        header: 'Oncelik',
+        header: 'Öncelik',
         render: (item) => <PriorityBadge priority={item.priority} />,
       },
       {
@@ -93,7 +93,7 @@ export function QueuePage() {
       { expertId },
       {
         onSuccess: () => {
-          toast.success('Vaka secilen uzmana atandi.')
+          toast.success('Vaka seçilen uzmana atandı.')
           setSelectedCase(null)
         },
         onError: (error) => toast.error(getApiError(error).message),
@@ -102,11 +102,11 @@ export function QueuePage() {
   }
 
   if (dashboardQuery.isLoading) {
-    return <Spinner className="min-h-80" label="Kuyruk yukleniyor" />
+    return <Spinner className="min-h-80" label="Kuyruk yükleniyor" />
   }
 
   if (dashboardQuery.isError) {
-    return <ErrorState onRetry={() => dashboardQuery.refetch()} title="Kuyruk alinamadi" />
+    return <ErrorState onRetry={() => dashboardQuery.refetch()} title="Kuyruk alınamadı" />
   }
 
   const pendingQueue = dashboardQuery.data?.pendingQueue ?? []
@@ -115,15 +115,15 @@ export function QueuePage() {
     <section className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Manuel atama kuyrugu</CardTitle>
+          <CardTitle>Manuel Atama Kuyruğu</CardTitle>
           <CardDescription>
-            AI fallback, BELIRSIZ segment veya kapasite bekleyen vakalar buradan atanir.
+            Segmenti netleşmeyen veya kapasite bekleyen vakalar buradan atanır.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {pendingQueue.length === 0 ? (
             <EmptyState
-              description="Su anda manuel atama bekleyen vaka yok."
+              description="Şu anda manuel atama bekleyen vaka yok."
               title="Kuyruk temiz"
             />
           ) : (
@@ -133,11 +133,11 @@ export function QueuePage() {
       </Card>
 
       <Modal
-        description="Atama tamamlandiginda vaka kuyruktan cikar ve ilgili uzmana duser."
+        description="Atama tamamlandığında vaka kuyruktan çıkar ve ilgili uzmana düşer."
         footer={
           <>
             <Button onClick={() => setSelectedCase(null)} variant="secondary">
-              Vazgec
+              Vazgeç
             </Button>
             <Button isLoading={assignCase.isPending} onClick={handleAssign}>
               Ata
@@ -150,7 +150,7 @@ export function QueuePage() {
       >
         <div className="space-y-4">
           <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-            <p className="text-xs font-bold uppercase text-slate-500">Secilen vaka</p>
+            <p className="text-xs font-bold uppercase text-slate-500">Seçilen vaka</p>
             <p className="mt-1 text-sm font-bold text-slate-950">{selectedCase?.caseNumber}</p>
           </div>
           <label className="block">

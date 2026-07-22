@@ -6,7 +6,7 @@ import { tr } from '../i18n/tr'
 const readinessItems = [
   {
     title: 'React 18 + Vite',
-    description: 'TypeScript tabanli frontend projesi olusturuldu.',
+    description: 'TypeScript tabanlı frontend projesi oluşturuldu.',
     icon: CheckCircle2,
     status: tr.phase.stable,
   },
@@ -24,7 +24,7 @@ const readinessItems = [
   },
   {
     title: 'Mock stratejisi',
-    description: 'MSW modulu backend ve DB seed netlesince sozlesmeye gore doldurulacak.',
+    description: 'MSW modülü backend ve DB seed netleşince sözleşmeye göre doldurulacak.',
     icon: Database,
     status: tr.phase.dbTbd,
   },
@@ -88,7 +88,7 @@ export function PhaseOnePage() {
           <div>
             <h2 className="text-base font-bold text-slate-950">Mock API kontrolu</h2>
             <p className="mt-1 text-sm leading-6 text-slate-600">
-              Dashboard sozlesmesi TanStack Query ile API katmanindan okunuyor.
+              Dashboard sözleşmesi TanStack Query ile API katmanından okunuyor.
             </p>
           </div>
           <span className="rounded-sm bg-brand-navy px-3 py-2 text-sm font-bold text-white">

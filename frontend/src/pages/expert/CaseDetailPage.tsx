@@ -36,6 +36,24 @@ const stateFlow: CaseStatus[] = [
 
 const segments: Segment[] = ['RISKLI_KAYIP', 'YUKSEK_DEGER', 'YENI_ABONE', 'PASIF', 'BELIRSIZ']
 
+const statusLabels: Record<CaseStatus, string> = {
+  YENI: 'Yeni',
+  ATANDI: 'Atandı',
+  OPTIMIZE_EDILIYOR: 'Optimize ediliyor',
+  TEST_EDILIYOR: 'Test ediliyor',
+  TAMAMLANDI: 'Tamamlandı',
+  YAYINDA: 'Yayında',
+  ARSIVLENDI: 'Arşivlendi',
+}
+
+const segmentLabels: Record<Segment, string> = {
+  RISKLI_KAYIP: 'Riskli kayıp',
+  YUKSEK_DEGER: 'Yüksek değer',
+  YENI_ABONE: 'Yeni abone',
+  PASIF: 'Pasif',
+  BELIRSIZ: 'Belirsiz',
+}
+
 export function CaseDetailPage() {
   const { caseId } = useParams()
   const caseQuery = useCaseDetail(caseId)
@@ -55,7 +73,7 @@ export function CaseDetailPage() {
     updateStatus.mutate(
       { targetStatus: status },
       {
-        onSuccess: () => toast.success('Vaka durumu guncellendi.'),
+        onSuccess: () => toast.success('Vaka durumu güncellendi.'),
         onError: (error) => toast.error(getApiError(error).message),
       },
     )
@@ -70,7 +88,7 @@ export function CaseDetailPage() {
       { targetStatus, note },
       {
         onSuccess: () => {
-          toast.success('Vaka tamamlandi.')
+          toast.success('Vaka tamamlandı.')
           setTargetStatus(null)
           setNote('')
         },
@@ -80,18 +98,18 @@ export function CaseDetailPage() {
   }
 
   if (caseQuery.isLoading) {
-    return <Spinner className="min-h-80" label="Vaka detayi yukleniyor" />
+    return <Spinner className="min-h-80" label="Vaka detayı yükleniyor" />
   }
 
   if (caseQuery.isError) {
-    return <ErrorState onRetry={() => caseQuery.refetch()} title="Vaka detayi alinamadi" />
+    return <ErrorState onRetry={() => caseQuery.refetch()} title="Vaka detayı alınamadı" />
   }
 
   if (!selectedCase) {
     return (
       <EmptyState
-        description="Secilen vaka bulunamadi veya backend henuz bu kaydi dondurmuyor."
-        title="Vaka bulunamadi"
+        description="Seçilen vaka şu anda görüntülenemiyor."
+        title="Vaka bulunamadı"
       />
     )
   }
@@ -103,19 +121,19 @@ export function CaseDetailPage() {
         to="/cases"
       >
         <ArrowLeft size={17} aria-hidden="true" />
-        Vakalara don
+        Vakalara dön
       </Link>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{selectedCase.campaignTitle}</CardTitle>
-          <CardDescription>{selectedCase.caseNumber}</CardDescription>
+      <Card className="overflow-hidden border-blue-100 shadow-lg shadow-blue-950/5">
+        <CardHeader className="border-blue-100 bg-[#294b98] text-white">
+          <CardTitle className="text-xl text-white">{selectedCase.campaignTitle}</CardTitle>
+          <CardDescription className="text-white/72">{selectedCase.caseNumber}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center gap-2">
             <SegmentBadge segment={selectedCase.segment} />
             <PriorityBadge priority={selectedCase.priority} />
-            <Badge tone="neutral">{selectedCase.status}</Badge>
+            <Badge tone="neutral">{statusLabels[selectedCase.status]}</Badge>
             <SlaCountdown
               breached={selectedCase.slaBreached}
               remainingSeconds={selectedCase.remainingSlaSeconds}
@@ -125,11 +143,11 @@ export function CaseDetailPage() {
       </Card>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_22rem]">
-        <Card>
+        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
-            <CardTitle>Durum akisi</CardTitle>
+            <CardTitle>Durum Akışı</CardTitle>
             <CardDescription>
-              Butonlar yalnizca backend/mock `allowedTransitions` alanindan uretilir.
+              Vaka için kullanılabilir sonraki adımları buradan yönetebilirsin.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -139,17 +157,17 @@ export function CaseDetailPage() {
                 const isAllowed = selectedCase.allowedTransitions.includes(status)
 
                 return (
-                  <div
-                    className={`rounded-md border p-3 text-center ${
-                      isCurrent
+                    <div
+                      className={`rounded-md border p-3 text-center ${
+                        isCurrent
                         ? 'border-brand-yellow bg-brand-yellow/20'
                         : isAllowed
-                          ? 'border-brand-navy/30 bg-slate-50'
-                          : 'border-slate-200 bg-white'
-                    }`}
-                    key={status}
+                          ? 'border-brand-navy/30 bg-blue-50'
+                          : 'border-blue-100 bg-white'
+                      }`}
+                      key={status}
                   >
-                    <p className="text-xs font-bold text-slate-700">{status}</p>
+                    <p className="text-xs font-bold text-slate-700">{statusLabels[status]}</p>
                     {isCurrent ? (
                       <CheckCircle2 className="mx-auto mt-2 text-brand-navy" size={18} />
                     ) : null}
@@ -166,45 +184,45 @@ export function CaseDetailPage() {
                     key={status}
                     onClick={() => handleStatusClick(status)}
                   >
-                    {status} yap
+                    {statusLabels[status]} Yap
                   </Button>
                 ))
               ) : (
-                <Badge tone="neutral">Bu durumda kullanilabilir aksiyon yok</Badge>
+                <Badge tone="neutral">Bu durumda kullanılabilir aksiyon yok</Badge>
               )}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
-            <CardTitle>AI bilgisi</CardTitle>
-            <CardDescription>Segment ve donusum tahmini.</CardDescription>
+            <CardTitle>Tahmin Özeti</CardTitle>
+            <CardDescription>Segment ve dönüşüm olasılığı.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="rounded-md border border-brand-yellow/60 bg-brand-yellow/15 p-4">
               <div className="flex items-center gap-2 text-sm font-bold text-brand-navy">
                 <Bot size={18} aria-hidden="true" />
-                AI atamasi
+                Akıllı öneri
               </div>
               <p className="mt-3 text-2xl font-bold text-slate-950">
                 {selectedCase.conversionProbability
                   ? `%${Math.round(selectedCase.conversionProbability * 100)}`
                   : 'Bekleniyor'}
               </p>
-              <p className="mt-1 text-sm text-slate-600">Donusum olasiligi</p>
+              <p className="mt-1 text-sm text-slate-600">Dönüşüm olasılığı</p>
             </div>
 
             <label className="mt-5 block">
-              <span className="text-sm font-semibold text-slate-700">Segment duzeltme</span>
+              <span className="text-sm font-semibold text-slate-700">Segment düzeltme</span>
               <select
-                className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none transition focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+                className="mt-2 h-11 w-full rounded-md border border-blue-100 bg-blue-50/40 px-3 text-sm outline-none transition focus:border-brand-navy focus:bg-white focus:ring-2 focus:ring-brand-navy/15"
                 disabled={overrideSegment.isPending}
                 onChange={(event) =>
                   overrideSegment.mutate(
                     { segment: event.target.value as Segment },
                     {
-                      onSuccess: () => toast.success('AI dogruluguna islendi.'),
+                      onSuccess: () => toast.success('Segment güncellendi.'),
                       onError: (error) => toast.error(getApiError(error).message),
                     },
                   )
@@ -213,7 +231,7 @@ export function CaseDetailPage() {
               >
                 {segments.map((segment) => (
                   <option key={segment} value={segment}>
-                    {segment}
+                    {segmentLabels[segment]}
                   </option>
                 ))}
               </select>
@@ -223,11 +241,11 @@ export function CaseDetailPage() {
       </div>
 
       <Modal
-        description="TAMAMLANDI durumuna gecmek icin uzman notu zorunludur."
+        description="Tamamlandı durumuna geçmek için uzman notu zorunludur."
         footer={
           <>
             <Button onClick={() => setTargetStatus(null)} variant="secondary">
-              Vazgec
+              Vazgeç
             </Button>
             <Button isLoading={updateStatus.isPending} onClick={handleComplete}>
               Tamamla
@@ -239,9 +257,9 @@ export function CaseDetailPage() {
         title="Uzman notu"
       >
         <textarea
-          className="min-h-32 w-full rounded-md border border-slate-300 px-3 py-3 text-sm outline-none transition focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+          className="min-h-32 w-full rounded-md border border-blue-100 bg-blue-50/40 px-3 py-3 text-sm outline-none transition focus:border-brand-navy focus:bg-white focus:ring-2 focus:ring-brand-navy/15"
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Optimizasyon notunu yazin"
+          placeholder="Optimizasyon notunu yazın"
           value={note}
         />
       </Modal>

@@ -38,7 +38,7 @@ export const mockSessions: Record<string, AuthSession> = {
     user: {
       id: 'admin-001',
       firstName: 'Admin',
-      lastName: 'Kullanici',
+      lastName: 'Kullanıcı',
       role: 'ADMIN',
     },
   },
@@ -104,7 +104,7 @@ export const mockCases: CaseDto[] = [
   {
     id: 'case-002',
     caseNumber: 'CASE-2026-000078',
-    campaignTitle: 'Yuksek deger segmentine cihaz teklifi',
+    campaignTitle: 'Yüksek değer segmentine cihaz teklifi',
     segment: 'YUKSEK_DEGER',
     priority: 'YUKSEK',
     status: 'OPTIMIZE_EDILIYOR',

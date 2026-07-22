@@ -25,7 +25,7 @@ const columns: DataTableColumn<AuditLogDto>[] = [
   },
   {
     key: 'userName',
-    header: 'Kullanici',
+    header: 'Kullanıcı',
     render: (item) => <span className="font-semibold text-slate-800">{item.userName}</span>,
   },
   {
@@ -45,10 +45,10 @@ const columns: DataTableColumn<AuditLogDto>[] = [
   },
   {
     key: 'success',
-    header: 'Sonuc',
+    header: 'Sonuç',
     align: 'right',
     render: (item) => (
-      <Badge tone={item.success ? 'success' : 'danger'}>{item.success ? 'Basarili' : 'Red'}</Badge>
+      <Badge tone={item.success ? 'success' : 'danger'}>{item.success ? 'Başarılı' : 'Red'}</Badge>
     ),
   },
 ]
@@ -68,7 +68,7 @@ export function AuditLogsPage() {
         <CardHeader>
           <CardTitle>Audit log</CardTitle>
           <CardDescription>
-            403 yetki ihlalleri, personel olusturma ve operasyon aksiyonlari burada izlenir.
+            403 yetki ihlalleri, personel oluşturma ve operasyon aksiyonları burada izlenir.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -82,25 +82,25 @@ export function AuditLogsPage() {
               >
                 {actionTypes.map((item) => (
                   <option key={item || 'ALL'} value={item}>
-                    {item || 'Tum aksiyonlar'}
+                    {item || 'Tüm aksiyonlar'}
                   </option>
                 ))}
               </select>
             </label>
           </div>
 
-          {auditLogsQuery.isLoading ? <Spinner className="min-h-60" label="Loglar yukleniyor" /> : null}
+          {auditLogsQuery.isLoading ? <Spinner className="min-h-60" label="Loglar yükleniyor" /> : null}
           {auditLogsQuery.isError ? (
-            <ErrorState onRetry={() => auditLogsQuery.refetch()} title="Audit log alinamadi" />
+            <ErrorState onRetry={() => auditLogsQuery.refetch()} title="Audit log alınamadı" />
           ) : null}
           {!auditLogsQuery.isLoading && !auditLogsQuery.isError && logs.length === 0 ? (
-            <EmptyState description="Filtreye uyan audit kaydi bulunmuyor." title="Log yok" />
+            <EmptyState description="Filtreye uyan audit kaydı bulunmuyor." title="Log yok" />
           ) : null}
           {logs.length > 0 ? (
             <div className="space-y-3">
               <Table columns={columns} getRowKey={(item) => `${item.occurredAt}-${item.resourceId}`} items={logs} />
               <p className="text-xs font-semibold text-slate-500">
-                Toplam {auditLogsQuery.data?.totalCount ?? logs.length} kayit
+                Toplam {auditLogsQuery.data?.totalCount ?? logs.length} kayıt
               </p>
             </div>
           ) : null}

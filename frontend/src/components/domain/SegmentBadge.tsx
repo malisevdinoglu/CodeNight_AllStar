@@ -2,8 +2,8 @@ import type { Segment } from '../../api/types'
 import { Badge } from '../ui/Badge'
 
 const segmentLabels: Record<Segment, string> = {
-  YUKSEK_DEGER: 'Yuksek deger',
-  RISKLI_KAYIP: 'Riskli kayip',
+  YUKSEK_DEGER: 'Yüksek değer',
+  RISKLI_KAYIP: 'Riskli kayıp',
   YENI_ABONE: 'Yeni abone',
   PASIF: 'Pasif',
   BELIRSIZ: 'Belirsiz',
