@@ -9,7 +9,7 @@ builder.Services.AddDbContext<GamificationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddScoped<IDataSeeder, NoOpDataSeeder>();
+builder.Services.AddScoped<IDataSeeder, GamificationDataSeeder>();
 
 var app = builder.Build();
 
