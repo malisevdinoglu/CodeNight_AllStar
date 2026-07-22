@@ -14,7 +14,8 @@ import random
 from pathlib import Path
 
 SEED = 42
-NOISE_RATE = 0.12  # %12 etiket gürültüsü: model %100 çıkmasın (gerçekçilik şartı)
+NOISE_RATE = 0.12  # %12 kabul etiketi gürültüsü: model %100 çıkmasın (gerçekçilik şartı)
+SEGMENT_NOISE_RATE = 0.06  # %6 segment etiketi gürültüsü: sınıflandırıcı da mükemmel olmasın
 
 SEGMENT_COUNTS = {
     "YUKSEK_DEGER": 80,
@@ -44,45 +45,46 @@ BASE_ACCEPT_PROB = {
 
 def _profile(segment: str, rng: random.Random) -> dict:
     """Segment arketipine uygun kullanım profili üretir (Iskender.md §5 aralıkları)."""
+    # Aralıklar bilinçli olarak örtüşür: sınıflar mükemmel ayrışmasın (gerçekçilik)
     if segment == "YUKSEK_DEGER":
         return {
-            "tenure_months": rng.randint(12, 96),
-            "avg_monthly_data_gb": round(rng.uniform(30, 80), 2),
-            "avg_monthly_call_minutes": rng.randint(400, 1500),
-            "monthly_spend_tl": round(rng.uniform(400, 900), 2),
-            "package_purchase_count": rng.randint(2, 8),
-            "complaint_count": rng.randint(0, 1),
-            "days_since_last_activity": rng.randint(0, 5),
+            "tenure_months": rng.randint(8, 96),
+            "avg_monthly_data_gb": round(rng.uniform(22, 80), 2),
+            "avg_monthly_call_minutes": rng.randint(300, 1500),
+            "monthly_spend_tl": round(rng.uniform(350, 900), 2),
+            "package_purchase_count": rng.randint(1, 8),
+            "complaint_count": rng.randint(0, 2),
+            "days_since_last_activity": rng.randint(0, 12),
         }
     if segment == "RISKLI_KAYIP":
         return {
             "tenure_months": rng.randint(6, 72),
-            "avg_monthly_data_gb": round(rng.uniform(2, 15), 2),  # düşen kullanım
-            "avg_monthly_call_minutes": rng.randint(20, 250),
-            "monthly_spend_tl": round(rng.uniform(120, 350), 2),
-            "package_purchase_count": rng.randint(0, 1),
-            "complaint_count": rng.randint(3, 8),  # şikayet 3+ churn sinyali
-            "days_since_last_activity": rng.randint(30, 90),
+            "avg_monthly_data_gb": round(rng.uniform(2, 20), 2),  # düşen kullanım
+            "avg_monthly_call_minutes": rng.randint(20, 350),
+            "monthly_spend_tl": round(rng.uniform(120, 400), 2),
+            "package_purchase_count": rng.randint(0, 2),
+            "complaint_count": rng.randint(2, 8),  # şikayet churn sinyali
+            "days_since_last_activity": rng.randint(20, 90),
         }
     if segment == "YENI_ABONE":
         return {
             "tenure_months": rng.randint(0, 5),  # tenure < 6 ay
-            "avg_monthly_data_gb": round(rng.uniform(8, 30), 2),
-            "avg_monthly_call_minutes": rng.randint(100, 600),
-            "monthly_spend_tl": round(rng.uniform(150, 450), 2),
-            "package_purchase_count": rng.randint(0, 2),
-            "complaint_count": rng.randint(0, 2),
-            "days_since_last_activity": rng.randint(0, 14),
+            "avg_monthly_data_gb": round(rng.uniform(5, 35), 2),
+            "avg_monthly_call_minutes": rng.randint(80, 700),
+            "monthly_spend_tl": round(rng.uniform(150, 500), 2),
+            "package_purchase_count": rng.randint(0, 3),
+            "complaint_count": rng.randint(0, 3),
+            "days_since_last_activity": rng.randint(0, 25),
         }
     # PASIF
     return {
         "tenure_months": rng.randint(12, 120),
-        "avg_monthly_data_gb": round(rng.uniform(0.5, 6), 2),
-        "avg_monthly_call_minutes": rng.randint(0, 120),
-        "monthly_spend_tl": round(rng.uniform(80, 200), 2),
-        "package_purchase_count": 0,  # ek paket almıyor
-        "complaint_count": rng.randint(0, 2),
-        "days_since_last_activity": rng.randint(60, 180),
+        "avg_monthly_data_gb": round(rng.uniform(0.5, 8), 2),
+        "avg_monthly_call_minutes": rng.randint(0, 180),
+        "monthly_spend_tl": round(rng.uniform(80, 230), 2),
+        "package_purchase_count": rng.randint(0, 1),  # ek paket almıyor (nadiren 1)
+        "complaint_count": rng.randint(0, 3),
+        "days_since_last_activity": rng.randint(45, 180),
     }
 
 
@@ -118,12 +120,16 @@ def generate(out_path: Path) -> None:
             accept_ratio = sum(accepted.values()) / len(CAMPAIGN_TYPES)
             past_rate = min(max(accept_ratio + rng.uniform(-0.15, 0.15), 0.0), 1.0)
 
+            label_segment = segment
+            if rng.random() < SEGMENT_NOISE_RATE:  # sınır vakası simülasyonu
+                label_segment = rng.choice([s for s in SEGMENT_COUNTS if s != segment])
+
             rows.append({
                 "gsm_number": f"5{gsm_pool.pop():09d}",
                 "current_plan": rng.choice(PLANS[segment]),
                 **profile,
                 "past_acceptance_rate": round(past_rate, 2),
-                "label_segment": segment,
+                "label_segment": label_segment,
                 **accepted,
             })
 

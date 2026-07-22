@@ -47,17 +47,26 @@ segment eğilimini yansıtır (örn. `RISKLI_KAYIP` × `SADAKAT` = 0.68 — indi
 
 ### 2.3 Gürültü ve tekrar üretilebilirlik
 
-- **%12 etiket gürültüsü:** her kabul etiketi %12 olasılıkla çevrilir → model %100
-  accuracy'ye çıkamaz, gerçekçi öğrenme problemi oluşur (case şartı).
+- **%12 kabul etiketi gürültüsü:** her kabul etiketi %12 olasılıkla çevrilir.
+- **%6 segment etiketi gürültüsü + örtüşen özellik aralıkları:** sınır vakaları simüle edilir
+  → hiçbir model %100 accuracy'ye çıkamaz, gerçekçi öğrenme problemi oluşur (case şartı).
 - **seed=42:** üretim deterministik; `python3 services/ai/ml/generate_data.py`
   her makinede birebir aynı CSV'yi üretir (MD5 doğrulandı).
 - `past_acceptance_rate` alanı satırın kendi kabul etiketleriyle tutarlı üretilir (± 0.15 jitter).
 
 ## 3. Model Eğitimi (`services/ai/ml/train.py`)
 
-> TODO — veri seti hazır, eğitim adımı sırada:
-> scikit-learn pipeline, train/test split, accuracy + F1 (macro) raporu,
-> `model.joblib` çıktısı, metrikler `model_metadata` tablosuna yazılır.
+İki görev, tek paket (`model.joblib`), tamamen deterministik (`random_state=42`):
+
+| Görev | Model | Neden | Test metrikleri (%20 hold-out, stratified) |
+|---|---|---|---|
+| Segment sınıflandırma | RandomForest (200 ağaç) | Tablosal veri + doğrusal olmayan sınırlar, feature importance jüriye anlatılabilir | accuracy **0.967**, F1-macro **0.968** |
+| Kabul olasılığı (kampanya tipi başına 4 model) | StandardScaler + LogisticRegression | `predict_proba` doğal 0-1 skor → case'in 0.60 eşiği / 0.80 önceliği doğrudan uygulanır | accuracy 0.73–0.83 |
+
+- **Öneri skoru** = ilgili kampanya tipinin kabul olasılığı − `score_adjustments` cezası (geri bildirim düşüşü).
+- **Dönüşüm tahmini** = aynı olasılık (kalibre logistic çıktı).
+- Metrikler `ml/metrics.json`'a yazılır; servis açılışında `model_metadata` tablosuna seed'lenir.
+- Yeniden eğitim: `python ml/generate_data.py && python ml/train.py` — iki adım da deterministik.
 
 ## 4. Doğruluk Takibi (runtime)
 

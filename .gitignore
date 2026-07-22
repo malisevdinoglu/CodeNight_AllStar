@@ -2,3 +2,6 @@ prompts.md
 Promts.md
 Prompts.md
 .DS_Store
+.venv/
+__pycache__/
+*.pyc
