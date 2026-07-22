@@ -55,7 +55,8 @@ const shellNavItems: ShellNavItem[] = [
     label: 'Yeni kampanya',
     path: '/campaigns/new',
     status: tr.phase.backendTbd,
-    roles: ['PERSONEL'],
+    // MUSTERI YAPAMAZ, digerleri (PERSONEL/SUPERVIZOR/ADMIN) yapabilir (case §3.3 netlestirme).
+    roles: ['PERSONEL', 'SUPERVIZOR', 'ADMIN'],
     icon: PlusCircle,
   },
   {

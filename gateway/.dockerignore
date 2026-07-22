@@ -1,0 +1,10 @@
+# gateway'in build context'i repo kaynagindan farkli olarak "./gateway" (bkz. docker-compose.yml
+# build: ./gateway) - repo kokundeki .dockerignore buraya UYGULANMAZ, bu yuzden ayri bir dosya
+# gerekiyor. Bunsuz, host'ta yerel `dotnet build` calistirildiginda olusan bin/obj klasorleri
+# Dockerfile'daki "COPY src/ src/" adiminda container'a kopyalanip container'in kendi taze
+# restore ciktisinin (obj/project.assets.json) uzerine yazar - bu da "Package X was not found"
+# (NETSDK1064) hatasina yol acar (host'un NuGet global-packages yolu container'da gecersiz).
+bin/
+obj/
+**/bin/
+**/obj/

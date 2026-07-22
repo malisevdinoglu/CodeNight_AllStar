@@ -42,9 +42,15 @@ export const router = createBrowserRouter([
             ],
           },
           {
+            // Kampanya olusturma: MUSTERI YAPAMAZ, digerleri (PERSONEL/SUPERVIZOR/ADMIN)
+            // yapabilir (case §3.3 netlestirme sonrasi) - cases/game-profile'dan ayri blok,
+            // cunku onlar hala PERSONEL-only.
+            element: <RequireRole allowedRoles={['PERSONEL', 'SUPERVIZOR', 'ADMIN']} />,
+            children: [{ path: 'campaigns/new', element: <CreateCampaignPage /> }],
+          },
+          {
             element: <RequireRole allowedRoles={['PERSONEL']} />,
             children: [
-              { path: 'campaigns/new', element: <CreateCampaignPage /> },
               { path: 'cases', element: <MyCasesPage /> },
               { path: 'cases/:caseId', element: <CaseDetailPage /> },
               { path: 'game-profile', element: <GameProfilePage /> },

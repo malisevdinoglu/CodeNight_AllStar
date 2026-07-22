@@ -18,9 +18,12 @@ public sealed class CampaignsController : ControllerBase
         _mediator = mediator;
     }
 
-    /// <summary>Mali_Plan.md kritik akış: kampanya oluştur → AI /recommend → Offer/case aç.</summary>
+    /// <summary>
+    /// Mali_Plan.md kritik akış: kampanya oluştur → AI /recommend → Offer/case aç.
+    /// Yetki (case §3.3, netleştirme sonrası): MUSTERI YAPAMAZ; PERSONEL/SUPERVIZOR/ADMIN yapabilir.
+    /// </summary>
     [HttpPost]
-    [Authorize(Roles = "SUPERVIZOR")]
+    [Authorize(Roles = "PERSONEL,SUPERVIZOR,ADMIN")]
     public async Task<IActionResult> Create(CreateCampaignCommand command, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(command, cancellationToken);
