@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "segment": {
+    "accuracy": 0.9667,
+    "f1_macro": 0.9677
+  },
+  "acceptance": {
+    "EK_PAKET": {
+      "accuracy": 0.8333,
+      "f1": 0.7727
+    },
+    "TARIFE_YUKSELTME": {
+      "accuracy": 0.7333,
+      "f1": 0.5294
+    },
+    "CIHAZ_FIRSATI": {
+      "accuracy": 0.7833,
+      "f1": 0.5806
+    },
+    "SADAKAT": {
+      "accuracy": 0.7333,
+      "f1": 0.68
+    }
+  }
+}
