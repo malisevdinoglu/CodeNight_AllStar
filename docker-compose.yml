@@ -1,0 +1,114 @@
+# CampaignCell — tüm sistem tek komutla ayağa kalkar: docker compose up
+# Port sözleşmesi: Core_Principles §9. Database-per-service FİZİKSEL ayrım:
+# 4 ayrı PostgreSQL container'ı, 4 ayrı volume — ortak DB diskalifiye sebebi.
+#
+# Katmanlar:
+#   1) Altyapı (bu dosyada hazır): 4 × PostgreSQL + Redis + RabbitMQ, healthcheck'li
+#   2) Uygulama (iskelet geldikçe eklenecek): identity-api, campaign-api, ai-api,
+#      gamification-api, gateway, frontend — hepsi depends_on: condition: service_healthy
+
+name: campaigncell
+
+services:
+  # ── Altyapı ─────────────────────────────────────────────────────────────
+  identity-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${IDENTITY_DB_USER:-identity}
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASS:-identity}
+      POSTGRES_DB: identity_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - identity-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d identity_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  campaign-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${CAMPAIGN_DB_USER:-campaign}
+      POSTGRES_PASSWORD: ${CAMPAIGN_DB_PASS:-campaign}
+      POSTGRES_DB: campaign_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - campaign-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d campaign_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ai-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${AI_DB_USER:-ai}
+      POSTGRES_PASSWORD: ${AI_DB_PASS:-ai}
+      POSTGRES_DB: ai_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - ai-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d ai_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gamification-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${GAMIFICATION_DB_USER:-gamification}
+      POSTGRES_PASSWORD: ${GAMIFICATION_DB_PASS:-gamification}
+      POSTGRES_DB: gamification_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - gamification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d gamification_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672" # yönetim UI — demo'da event akışını göstermek için
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Uygulama servisleri ─────────────────────────────────────────────────
+  # identity-api    → build: services/identity   host 5001, depends_on: identity-db, rabbitmq
+  # campaign-api    → build: services/campaign   host 5002, depends_on: campaign-db, rabbitmq
+  # ai-api          → build: services/ai         host 5003, depends_on: ai-db, rabbitmq
+  # gamification-api→ build: services/gamification host 5004, depends_on: gamification-db, redis, rabbitmq
+  # gateway         → build: gateway             host 8080 (tek dış kapı)
+  # frontend        → build: frontend            host 3000
+
+volumes:
+  identity-db-data:
+  campaign-db-data:
+  ai-db-data:
+  gamification-db-data:
