@@ -13,7 +13,7 @@ export function BadgeToast({ badgeCode, badgeName }: BadgeToastProps) {
         <Award size={20} aria-hidden="true" />
       </div>
       <div>
-        <p className="text-sm font-bold text-slate-950">Rozet kazanildi</p>
+        <p className="text-sm font-bold text-slate-950">Rozet kazanıldı</p>
         <p className="mt-1 text-sm text-slate-600">{badgeName}</p>
         <Badge className="mt-2" tone="brand">
           {badgeCode}

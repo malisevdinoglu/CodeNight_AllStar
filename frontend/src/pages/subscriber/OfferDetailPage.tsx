@@ -28,18 +28,18 @@ export function OfferDetailPage() {
   const [stars, setStars] = useState<1 | 2 | 3 | 4 | 5>(3)
 
   if (offerQuery.isLoading) {
-    return <Spinner className="min-h-80" label="Teklif detayi yukleniyor" />
+    return <Spinner className="min-h-80" label="Teklif detayı yükleniyor" />
   }
 
   if (offerQuery.isError) {
-    return <ErrorState onRetry={() => offerQuery.refetch()} title="Teklif detayi alinamadi" />
+    return <ErrorState onRetry={() => offerQuery.refetch()} title="Teklif detayı alınamadı" />
   }
 
   if (!offerQuery.data) {
     return (
       <EmptyState
-        description="Secilen teklif bulunamadi veya backend henuz bu kaydi dondurmuyor."
-        title="Teklif bulunamadi"
+        description="Seçilen teklif şu anda görüntülenemiyor."
+        title="Teklif bulunamadı"
       />
     )
   }
@@ -53,27 +53,30 @@ export function OfferDetailPage() {
         to="/offers"
       >
         <ArrowLeft size={17} aria-hidden="true" />
-        Tekliflere don
+        Tekliflere dön
       </Link>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{offer.title}</CardTitle>
-          <CardDescription>{offer.campaignNumber}</CardDescription>
+      <Card className="overflow-hidden border-blue-100 shadow-lg shadow-blue-950/5">
+        <CardHeader className="border-blue-100 bg-[#294b98] text-white">
+          <div>
+            <p className="text-xs font-bold uppercase text-brand-yellow">{offer.campaignNumber}</p>
+            <CardTitle className="mt-2 text-xl text-white">{offer.title}</CardTitle>
+            <CardDescription className="text-white/72">Kampanya detayları ve avantaj bilgileri</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <Info
               icon={Percent}
-              label="Indirim"
+              label="İndirim"
               value={`%${offer.discountRate}`}
             />
             <Info
               icon={CalendarDays}
-              label="Gecerlilik"
+              label="Geçerlilik"
               value={new Date(offer.validUntil).toLocaleDateString('tr-TR')}
             />
-            <Info label="Onerim skoru" value={offer.recommendationScore.toString()} />
+            <Info label="Önerim skoru" value={offer.recommendationScore.toString()} />
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -127,19 +130,18 @@ export function OfferDetailPage() {
       </Card>
 
       {offer.canRate ? (
-        <Card>
+        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
             <CardTitle>Teklifi puanla</CardTitle>
             <CardDescription>
-              1-2 yildiz seciminde teklif alakasizligi AI geri bildirimine islenir.
+              Deneyimini puanlayarak gelecek tekliflerin daha iyi sekillenmesine yardimci ol.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <StarRating onChange={setStars} value={stars} />
             {stars <= 2 ? (
               <p className="mt-3 text-sm font-semibold text-red-700">
-                Bu teklif neden alakasizdi? Backend geldikten sonra mikro geri bildirim alani
-                genisletilecek.
+                Düşük puanını dikkate alacağız; sana daha uygun öneriler sunmaya çalışacağız.
               </p>
             ) : null}
             <div className="mt-5">
@@ -158,7 +160,7 @@ export function OfferDetailPage() {
                   )
                 }
               >
-                Puanlamayi kaydet
+                Puanlamayı Kaydet
               </Button>
             </div>
           </CardContent>
@@ -178,12 +180,12 @@ function Info({
   value: string
 }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-md border border-blue-100 bg-blue-50/60 p-4">
       <div className="flex items-center gap-2 text-xs font-bold uppercase text-slate-500">
         {Icon ? <Icon size={16} aria-hidden="true" /> : null}
         {label}
       </div>
-      <p className="mt-2 text-2xl font-bold text-slate-950">{value}</p>
+      <p className="mt-2 text-2xl font-bold text-brand-navy">{value}</p>
     </div>
   )
 }

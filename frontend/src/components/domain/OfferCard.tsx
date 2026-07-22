@@ -27,25 +27,25 @@ export function OfferCard({ isBusy = false, offer, onRespond }: OfferCardProps) 
   const Icon = typeIcons[offer.type]
 
   return (
-    <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-navy/40">
+    <article className="rounded-md border border-blue-100 bg-white p-5 shadow-sm shadow-blue-950/5 transition hover:-translate-y-0.5 hover:border-brand-navy/30 hover:shadow-lg hover:shadow-blue-950/10">
       <div className="flex items-start gap-4">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-brand-yellow/25 text-brand-navy">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-[#294b98] text-brand-yellow">
           <Icon size={24} aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            {offer.isPriority ? <Badge tone="brand">Size ozel</Badge> : null}
+            {offer.isPriority ? <Badge tone="brand">Size özel</Badge> : null}
             <Badge tone={statusTone[offer.status]}>{offer.status}</Badge>
             <Badge tone="neutral">{offer.type}</Badge>
           </div>
           <h2 className="mt-3 text-lg font-bold text-slate-950">{offer.title}</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            {offer.campaignNumber} - %{offer.discountRate} indirim - onerim skoru{' '}
+            {offer.campaignNumber} - %{offer.discountRate} avantaj - uygunluk puanı{' '}
             {offer.recommendationScore}
           </p>
-          <div className="mt-4 h-2 rounded-full bg-slate-100">
+          <div className="mt-4 h-2 rounded-full bg-blue-50">
             <div
-              className="h-2 rounded-full bg-brand-navy"
+              className="h-2 rounded-full bg-brand-yellow"
               style={{ width: `${offer.recommendationScore}%` }}
             />
           </div>
@@ -54,18 +54,23 @@ export function OfferCard({ isBusy = false, offer, onRespond }: OfferCardProps) 
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs font-semibold text-slate-500">
-          Gecerlilik: {new Date(offer.validUntil).toLocaleDateString('tr-TR')}
+          Geçerlilik: {new Date(offer.validUntil).toLocaleDateString('tr-TR')}
         </p>
         <div className="flex flex-wrap gap-2">
           <Link
-            className="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:border-brand-navy/40 hover:bg-slate-50"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-blue-100 bg-white px-4 text-sm font-bold text-brand-navy transition hover:border-brand-navy/40 hover:bg-blue-50"
             to={`/offers/${offer.id}`}
           >
             Detay
           </Link>
           {offer.status === 'SUNULDU' ? (
             <>
-              <Button isLoading={isBusy} onClick={() => onRespond('KABUL')} size="sm">
+              <Button
+                className="bg-brand-yellow text-brand-navy hover:bg-yellow-300 focus-visible:ring-brand-yellow/30"
+                isLoading={isBusy}
+                onClick={() => onRespond('KABUL')}
+                size="sm"
+              >
                 Kabul et
               </Button>
               <Button
@@ -74,7 +79,7 @@ export function OfferCard({ isBusy = false, offer, onRespond }: OfferCardProps) 
                 size="sm"
                 variant="secondary"
               >
-                Ilgilenmiyorum
+                İlgilenmiyorum
               </Button>
             </>
           ) : null}

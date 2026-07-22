@@ -44,7 +44,7 @@ export function SlaCountdown({ breached = false, remainingSeconds }: SlaCountdow
       )}
     >
       <Clock3 size={16} aria-hidden="true" />
-      {isBreached ? 'SLA ASILDI' : formatDuration(secondsLeft)}
+      {isBreached ? 'SLA aşıldı' : formatDuration(secondsLeft)}
     </span>
   )
 }

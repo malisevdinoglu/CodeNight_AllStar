@@ -2,9 +2,9 @@ import type { Priority } from '../../api/types'
 import { Badge } from '../ui/Badge'
 
 const priorityLabels: Record<Priority, string> = {
-  DUSUK: 'Dusuk',
+  DUSUK: 'Düşük',
   ORTA: 'Orta',
-  YUKSEK: 'Yuksek',
+  YUKSEK: 'Yüksek',
   KRITIK: 'Kritik',
 }
 

@@ -35,6 +35,23 @@ const statuses: Array<CaseStatus | ''> = [
 
 const priorities: Array<Priority | ''> = ['', 'KRITIK', 'YUKSEK', 'ORTA', 'DUSUK']
 
+const statusLabels: Record<CaseStatus, string> = {
+  YENI: 'Yeni',
+  ATANDI: 'Atandı',
+  OPTIMIZE_EDILIYOR: 'Optimize ediliyor',
+  TEST_EDILIYOR: 'Test ediliyor',
+  TAMAMLANDI: 'Tamamlandı',
+  YAYINDA: 'Yayında',
+  ARSIVLENDI: 'Arşivlendi',
+}
+
+const priorityLabels: Record<Priority, string> = {
+  KRITIK: 'Kritik',
+  YUKSEK: 'Yüksek',
+  ORTA: 'Orta',
+  DUSUK: 'Düşük',
+}
+
 function sortCases(items: CaseDto[]) {
   return [...items].sort((first, second) => {
     const priorityDiff = priorityOrder[first.priority] - priorityOrder[second.priority]
@@ -65,44 +82,50 @@ export function MyCasesPage() {
 
   return (
     <section className="space-y-6">
-      <Card>
+      <Card className="overflow-hidden border-blue-100 shadow-lg shadow-blue-950/5">
         <CardHeader
+          className="border-blue-100 bg-[#294b98] text-white"
           action={
             <Link to="/campaigns/new">
-              <Button leftIcon={<Plus size={18} aria-hidden="true" />}>Yeni kampanya</Button>
+              <Button
+                className="bg-brand-yellow text-brand-navy hover:bg-yellow-300 focus-visible:ring-brand-yellow/30"
+                leftIcon={<Plus size={18} aria-hidden="true" />}
+              >
+                Yeni kampanya
+              </Button>
             </Link>
           }
         >
-          <CardTitle>Atanan vakalar</CardTitle>
-          <CardDescription>
-            Kritik ve yuksek oncelikli vakalar SLA suresine gore en ustte listelenir.
+          <CardTitle className="text-xl text-white">Atanan vakalar</CardTitle>
+          <CardDescription className="text-white/72">
+            Kritik ve yüksek öncelikli vakalar SLA süresine göre en üstte listelenir.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-[1fr_12rem_12rem]">
-            <div className="flex h-11 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-500">
+            <div className="flex h-11 items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 text-sm font-semibold text-brand-navy">
               <Search size={18} aria-hidden="true" />
-              Backend geldikten sonra arama baglanacak
+              Öncelikli vaka takibi
             </div>
             <select
-              className="h-11 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+              className="h-11 rounded-md border border-blue-100 bg-white px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
               onChange={(event) => setStatus(event.target.value as CaseStatus | '')}
               value={status}
             >
               {statuses.map((item) => (
                 <option key={item || 'ALL'} value={item}>
-                  {item || 'Tum durumlar'}
+                  {item ? statusLabels[item] : 'Tüm durumlar'}
                 </option>
               ))}
             </select>
             <select
-              className="h-11 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
+              className="h-11 rounded-md border border-blue-100 bg-white px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15"
               onChange={(event) => setPriority(event.target.value as Priority | '')}
               value={priority}
             >
               {priorities.map((item) => (
                 <option key={item || 'ALL'} value={item}>
-                  {item || 'Tum oncelikler'}
+                  {item ? priorityLabels[item] : 'Tüm öncelikler'}
                 </option>
               ))}
             </select>
@@ -110,20 +133,20 @@ export function MyCasesPage() {
         </CardContent>
       </Card>
 
-      {casesQuery.isLoading ? <Spinner className="min-h-60" label="Vakalar yukleniyor" /> : null}
+      {casesQuery.isLoading ? <Spinner className="min-h-60" label="Vakalar yükleniyor" /> : null}
 
       {casesQuery.isError ? (
-        <ErrorState onRetry={() => casesQuery.refetch()} title="Vakalar alinamadi" />
+        <ErrorState onRetry={() => casesQuery.refetch()} title="Vakalar alınamadı" />
       ) : null}
 
       {!casesQuery.isLoading && !casesQuery.isError && sortedCases.length === 0 ? (
         <EmptyState
           action={
             <Link to="/campaigns/new">
-              <Button>Ilk kampanyayi olustur</Button>
+              <Button>İlk Kampanyayı Oluştur</Button>
             </Link>
           }
-          description="Filtrelere uyan atanmis vaka bulunmuyor."
+          description="Filtrelere uyan atanmış vaka bulunmuyor."
           title="Vaka yok"
         />
       ) : null}
@@ -131,7 +154,7 @@ export function MyCasesPage() {
       <div className="grid gap-4">
         {sortedCases.map((item) => (
           <article
-            className="rounded-md border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-navy/40"
+            className="rounded-md border border-blue-100 bg-white p-5 shadow-sm shadow-blue-950/5 transition hover:-translate-y-0.5 hover:border-brand-navy/30 hover:shadow-lg hover:shadow-blue-950/10"
             key={item.id}
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -143,10 +166,10 @@ export function MyCasesPage() {
                 </div>
                 <h2 className="mt-3 text-lg font-bold text-slate-950">{item.campaignTitle}</h2>
                 <p className="mt-2 text-sm text-slate-600">
-                  Durum: <span className="font-bold text-slate-800">{item.status}</span>
+                  Durum: <span className="font-bold text-slate-800">{statusLabels[item.status]}</span>
                   {item.conversionProbability
-                    ? ` - AI donusum: %${Math.round(item.conversionProbability * 100)}`
-                    : ' - AI degerlendirmesi bekleniyor'}
+                    ? ` - Dönüşüm: %${Math.round(item.conversionProbability * 100)}`
+                    : ' - Değerlendirme bekleniyor'}
                 </p>
               </div>
 
@@ -156,7 +179,7 @@ export function MyCasesPage() {
                   remainingSeconds={item.remainingSlaSeconds}
                 />
                 <Link
-                  className="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:border-brand-navy/40 hover:bg-slate-50"
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-blue-100 bg-white px-4 text-sm font-bold text-brand-navy transition hover:border-brand-navy/40 hover:bg-blue-50"
                   to={`/cases/${item.id}`}
                 >
                   Detay

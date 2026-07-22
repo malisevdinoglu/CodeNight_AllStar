@@ -26,18 +26,18 @@ export function GameProfilePage() {
   const leaderboardQuery = useLeaderboard('weekly')
 
   if (profileQuery.isLoading) {
-    return <Spinner className="min-h-80" label="Oyun profili yukleniyor" />
+    return <Spinner className="min-h-80" label="Oyun profili yükleniyor" />
   }
 
   if (profileQuery.isError) {
-    return <ErrorState onRetry={() => profileQuery.refetch()} title="Oyun profili alinamadi" />
+    return <ErrorState onRetry={() => profileQuery.refetch()} title="Oyun profili alınamadı" />
   }
 
   if (!profileQuery.data) {
     return (
       <EmptyState
-        description="Gamification verisi backend geldikten sonra bu ekranda gorunecek."
-        title="Profil bulunamadi"
+        description="Performans bilgileri şu anda görüntülenemiyor."
+        title="Profil bulunamadı"
       />
     )
   }
@@ -58,11 +58,11 @@ export function GameProfilePage() {
         <LevelFrame level={profileQuery.data.level}>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-bold uppercase text-brand-navy">Gamification</p>
+              <p className="text-sm font-bold uppercase text-brand-navy">Performans profili</p>
               <h1 className="mt-2 text-3xl font-bold text-slate-950">{profileQuery.data.level}</h1>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Toplam {profileQuery.data.totalPoints} puan - {profileQuery.data.solvedCaseCount}{' '}
-                vaka tamamlandi
+                vaka tamamlandı
               </p>
             </div>
             <div className="flex size-16 items-center justify-center rounded-md bg-brand-navy text-brand-yellow">
@@ -71,10 +71,10 @@ export function GameProfilePage() {
           </div>
         </LevelFrame>
 
-        <Card>
+        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
             <CardTitle>Rozet vitrini</CardTitle>
-            <CardDescription>Kazanilmamis rozetler kosul tooltip'i icin hazir alanla gelir.</CardDescription>
+            <CardDescription>Kazandığın rozetler ve ilerleme durumun.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-3">
@@ -84,9 +84,9 @@ export function GameProfilePage() {
                     badge.earnedAt
                       ? 'border-brand-yellow bg-brand-yellow/15'
                       : 'border-slate-200 bg-slate-50 opacity-70'
-                  }`}
+                   }`}
                   key={badge.code}
-                  title={badge.earnedAt ? badge.name : 'Kosul backend geldikten sonra netlesecek'}
+                  title={badge.earnedAt ? badge.name : 'Henüz kazanılmadı'}
                 >
                   <Award
                     className={badge.earnedAt ? 'text-brand-navy' : 'text-slate-400'}
@@ -105,27 +105,27 @@ export function GameProfilePage() {
       </div>
 
       <div className="space-y-6">
-        <Card>
+        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
-            <CardTitle>Siralama</CardTitle>
-            <CardDescription>Gunluk ve haftalik konum.</CardDescription>
+            <CardTitle>Sıralama</CardTitle>
+            <CardDescription>Günlük ve haftalık konum.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-md border border-slate-200 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Gunluk</p>
+              <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Günlük</p>
                 <p className="mt-2 text-2xl font-bold text-brand-navy">
                   #{profileQuery.data.dailyRank}
                 </p>
               </div>
-              <div className="rounded-md border border-slate-200 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Haftalik</p>
+              <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Haftalık</p>
                 <p className="mt-2 text-2xl font-bold text-brand-navy">
                   #{profileQuery.data.weeklyRank}
                 </p>
               </div>
             </div>
-            <div className="mt-4 rounded-md border border-slate-200 p-4">
+            <div className="mt-4 rounded-md border border-blue-100 bg-blue-50/50 p-4">
               <p className="text-xs font-bold uppercase text-slate-500">Ortalama puanlama</p>
               <p className="mt-2 text-2xl font-bold text-slate-950">
                 {profileQuery.data.avgRating.toFixed(1)}
@@ -134,42 +134,37 @@ export function GameProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
-            <CardTitle>Canli bildirim</CardTitle>
-            <CardDescription>SignalR hub durumu ve mock demo bildirimi.</CardDescription>
+            <CardTitle>Anlık Bildirimler</CardTitle>
+            <CardDescription>Rozet ve başarı bildirimlerini buradan takip edebilirsin.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Badge tone={gameHubStatus === 'connected' ? 'success' : 'neutral'}>
-                Hub: {gameHubStatus}
+                Bildirimler: {gameHubStatus === 'connected' ? 'açık' : 'beklemede'}
               </Badge>
               <Button onClick={handleMockBadge} variant="secondary">
-                Rozet bildirimi dene
+                Rozet Bildirimi Göster
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
-            <CardTitle>Haftalik liderlik</CardTitle>
-            <CardDescription>SignalR geldiginde canli invalidate edilecek tablo.</CardDescription>
+            <CardTitle>Haftalık Liderlik</CardTitle>
+            <CardDescription>Bu haftaki ekip sıralaması.</CardDescription>
           </CardHeader>
           <CardContent>
-            {leaderboardQuery.isLoading ? <Spinner label="Liderlik yukleniyor" /> : null}
+            {leaderboardQuery.isLoading ? <Spinner label="Liderlik yükleniyor" /> : null}
             {leaderboardQuery.isError ? (
-              <ErrorState onRetry={() => leaderboardQuery.refetch()} title="Liderlik alinamadi" />
+              <ErrorState onRetry={() => leaderboardQuery.refetch()} title="Liderlik alınamadı" />
             ) : null}
             {leaderboardQuery.data ? <LeaderboardTable entries={leaderboardQuery.data} /> : null}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent>
-            <BadgeToast badgeCode="DEMO_BADGE" badgeName="Anlik rozet bildirimi onizleme" />
-          </CardContent>
-        </Card>
       </div>
     </section>
   )
