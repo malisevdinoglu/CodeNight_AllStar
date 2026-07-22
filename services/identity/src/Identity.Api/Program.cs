@@ -9,7 +9,7 @@ builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddScoped<IDataSeeder, NoOpDataSeeder>();
+builder.Services.AddScoped<IDataSeeder, IdentityDataSeeder>();
 
 var app = builder.Build();
 
