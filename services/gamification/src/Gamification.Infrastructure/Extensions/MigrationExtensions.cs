@@ -36,6 +36,11 @@ public static class MigrationExtensions
             }
         }
 
+        // Badge katalogu Iskender'in genel IDataSeeder sozlesmesinin disinda, ayrica ve idempotent
+        // olarak seed edilir (bkz. BadgeCatalogSeeder ustundeki aciklama) - ExpertBadge FK'si
+        // bu satirlar olmadan hicbir rozet kaydini kabul etmez.
+        await BadgeCatalogSeeder.SeedAsync(dbContext, logger, default);
+
         var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
         await seeder.SeedAsync();
         logger.LogInformation("Seed tamamlandi.");

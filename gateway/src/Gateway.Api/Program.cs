@@ -43,6 +43,20 @@ builder.Services
         // 401/403 gövdelerini de ApiResponse zarfına uydur (Core_Principles §5).
         options.Events = new JwtBearerEvents
         {
+            // Faz 7: GameHub (SignalR) WebSocket el sikismasi Authorization header'i TASIYAMAZ
+            // (tarayici WS upgrade istegine ozel header ekleyemez) - token query string'te gelir
+            // (?access_token=...). Gamification.Api'de de (defense in depth) ayni destek var.
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
             OnChallenge = async context =>
             {
                 context.HandleResponse();

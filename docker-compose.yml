@@ -210,6 +210,9 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       REDIS_HOST: redis
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      IdentityService__BaseUrl: http://identity-api:8080
+      Jwt__Secret: ${JWT_SECRET}
     ports:
       - "5004:8080"
     depends_on:
@@ -218,6 +221,8 @@ services:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      identity-api:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]

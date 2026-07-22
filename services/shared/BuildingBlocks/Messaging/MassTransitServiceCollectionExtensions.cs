@@ -16,7 +16,8 @@ public static class MassTransitServiceCollectionExtensions
     public static IServiceCollection AddCampaignCellMassTransit(
         this IServiceCollection services,
         IConfiguration configuration,
-        Action<IBusRegistrationConfigurator>? configureConsumers = null)
+        Action<IBusRegistrationConfigurator>? configureConsumers = null,
+        Action<IBusRegistrationContext, IRabbitMqBusFactoryConfigurator>? configureRabbitMq = null)
     {
         services.AddMassTransit(busConfigurator =>
         {
@@ -35,6 +36,11 @@ public static class MassTransitServiceCollectionExtensions
                 });
 
                 cfg.UseRawJsonSerializer();
+
+                // Faz 7: Gamification gibi tüketici servisler kendi topic-exchange binding'lerini
+                // (bkz. IntegrationEventTopologyExtensions.ReceiveIntegrationEvent) burada kurar.
+                // null ise (Identity/Campaign) davranış AYNEN eskisi gibi kalır - geriye dönük uyumlu.
+                configureRabbitMq?.Invoke(context, cfg);
 
                 cfg.ConfigureEndpoints(context);
             });
