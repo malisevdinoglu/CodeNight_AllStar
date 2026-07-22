@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { caseApi } from '../api'
 import type {
+  AssignCaseRequest,
   CaseStatusRequest,
   CasesQuery,
   SegmentOverrideRequest,
@@ -38,6 +39,19 @@ export function useOverrideSegment(caseId: string) {
 
   return useMutation({
     mutationFn: (payload: SegmentOverrideRequest) => caseApi.overrideSegment(caseId, payload),
+    onSuccess: (updatedCase) => {
+      queryClient.setQueryData(['case', caseId], updatedCase)
+      queryClient.invalidateQueries({ queryKey: ['cases'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
+    },
+  })
+}
+
+export function useAssignCase(caseId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: AssignCaseRequest) => caseApi.assignCase(caseId, payload),
     onSuccess: (updatedCase) => {
       queryClient.setQueryData(['case', caseId], updatedCase)
       queryClient.invalidateQueries({ queryKey: ['cases'] })
