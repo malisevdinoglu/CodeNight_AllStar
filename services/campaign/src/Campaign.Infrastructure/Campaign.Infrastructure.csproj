@@ -10,6 +10,8 @@
     <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <!-- Core_Principles §2 "Outbox" deseni: DB commit + event publish atomik (AddEntityFrameworkOutbox). -->
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.2.5" />
   </ItemGroup>
 
   <ItemGroup>

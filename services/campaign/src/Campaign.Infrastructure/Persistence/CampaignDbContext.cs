@@ -1,4 +1,5 @@
 using Campaign.Domain.Entities;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using CampaignEntity = Campaign.Domain.Entities.Campaign;
 
@@ -31,5 +32,10 @@ public class CampaignDbContext : DbContext
         modelBuilder.HasSequence<long>("case_number_seq");
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CampaignDbContext).Assembly);
+
+        // Core_Principles §2 "Outbox": DB commit + event publish atomik (AddEntityFrameworkOutbox, Program.cs).
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }

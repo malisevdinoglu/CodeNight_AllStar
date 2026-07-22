@@ -17,6 +17,7 @@ public class CampaignConfiguration : IEntityTypeConfiguration<CampaignEntity>
         builder.HasIndex(c => c.CampaignNumber).IsUnique();
 
         builder.Property(c => c.Title).HasMaxLength(150).IsRequired();
+        builder.Property(c => c.Description).HasMaxLength(500);
         builder.Property(c => c.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(c => c.TargetSegment).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(c => c.DiscountRate).HasPrecision(5, 2);
