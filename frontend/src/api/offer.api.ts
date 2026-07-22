@@ -15,6 +15,11 @@ export const offerApi = {
     return unwrapApiResponse(response.data)
   },
 
+  async getOffer(offerId: string) {
+    const response = await apiClient.get<ApiResponse<OfferDto>>(`/offers/${offerId}`)
+    return unwrapApiResponse(response.data)
+  },
+
   async respondToOffer(offerId: string, payload: OfferResponseRequest) {
     const response = await apiClient.post<ApiResponse<OfferDto>>(
       `/offers/${offerId}/respond`,

@@ -3,8 +3,12 @@ import {
   BadgePercent,
   BarChart3,
   ClipboardList,
+  FileClock,
+  History,
+  ListChecks,
   LogOut,
   PlusCircle,
+  Rows3,
   ShieldCheck,
   Trophy,
   Users,
@@ -13,6 +17,9 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import type { UserRole } from '../../api/types'
 import { tr } from '../../i18n/tr'
 import { useAuthStore } from '../../stores/auth.store'
+import { useRealtimeStore } from '../../stores/realtime.store'
+import { Badge } from '../ui'
+import { GameHubBridge } from '../realtime/GameHubBridge'
 
 type ShellNavItem = {
   label: string
@@ -29,6 +36,13 @@ const shellNavItems: ShellNavItem[] = [
     status: tr.phase.backendTbd,
     roles: ['MUSTERI'],
     icon: BadgePercent,
+  },
+  {
+    label: 'Kampanyalarim',
+    path: '/my-campaigns',
+    status: tr.phase.backendTbd,
+    roles: ['MUSTERI'],
+    icon: History,
   },
   {
     label: tr.nav.cases,
@@ -59,11 +73,32 @@ const shellNavItems: ShellNavItem[] = [
     icon: BarChart3,
   },
   {
+    label: 'Atama kuyrugu',
+    path: '/queue',
+    status: tr.phase.backendTbd,
+    roles: ['SUPERVIZOR'],
+    icon: Rows3,
+  },
+  {
+    label: 'Tum vakalar',
+    path: '/supervisor/cases',
+    status: tr.phase.backendTbd,
+    roles: ['SUPERVIZOR'],
+    icon: ListChecks,
+  },
+  {
     label: tr.nav.admin,
     path: '/admin/staff',
     status: tr.phase.backendTbd,
     roles: ['ADMIN'],
     icon: Users,
+  },
+  {
+    label: 'Audit log',
+    path: '/admin/audit-logs',
+    status: tr.phase.backendTbd,
+    roles: ['ADMIN'],
+    icon: FileClock,
   },
 ]
 
@@ -72,6 +107,7 @@ export function AppShell() {
   const user = useAuthStore((state) => state.user)
   const role = useAuthStore((state) => state.role)
   const clearSession = useAuthStore((state) => state.clearSession)
+  const gameHubStatus = useRealtimeStore((state) => state.gameHubStatus)
   const visibleItems = role ? shellNavItems.filter((item) => item.roles.includes(role)) : []
 
   const handleLogout = () => {
@@ -81,6 +117,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
+      <GameHubBridge />
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
@@ -116,7 +153,14 @@ export function AppShell() {
             <p className="text-sm font-bold text-slate-950">
               {user ? `${user.firstName} ${user.lastName}` : 'Kullanici'}
             </p>
-            <p className="mt-1 text-xs font-semibold uppercase text-slate-500">{role}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold uppercase text-slate-500">{role}</p>
+              {role === 'PERSONEL' ? (
+                <Badge tone={gameHubStatus === 'connected' ? 'success' : 'neutral'}>
+                  Hub: {gameHubStatus}
+                </Badge>
+              ) : null}
+            </div>
           </div>
           <div className="mb-3 flex items-center gap-2 px-2 text-xs font-bold uppercase text-slate-500">
             <BarChart3 size={16} aria-hidden="true" />
