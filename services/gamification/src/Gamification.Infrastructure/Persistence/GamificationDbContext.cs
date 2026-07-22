@@ -1,3 +1,4 @@
+using Gamification.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Gamification.Infrastructure.Persistence;
@@ -12,6 +13,12 @@ public class GamificationDbContext : DbContext
     public GamificationDbContext(DbContextOptions<GamificationDbContext> options) : base(options)
     {
     }
+
+    public DbSet<ExpertScore> ExpertScores => Set<ExpertScore>();
+    public DbSet<PointTransaction> PointTransactions => Set<PointTransaction>();
+    public DbSet<Badge> Badges => Set<Badge>();
+    public DbSet<ExpertBadge> ExpertBadges => Set<ExpertBadge>();
+    public DbSet<SegmentCompletionCount> SegmentCompletionCounts => Set<SegmentCompletionCount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
