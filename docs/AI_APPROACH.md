@@ -75,3 +75,64 @@ segment eğilimini yansıtır (örn. `RISKLI_KAYIP` × `SADAKAT` = 0.68 — indi
   `classification_feedback` tablosu.
 - Doğruluk = `1 − (feedback / toplam prediction)`; süpervizör dashboard'unda gösterilir.
 - Kategori bazlı kırılım `predicted_segment` group by ile (+3 bonus).
+
+## 5. API Sözleşmesi (Faz 6, `app/routers/ai.py`)
+
+Tüm cevaplar Core_Principles §5 `ApiResponse` zarfına sarılır; JSON alanları **camelCase**,
+enum değerleri Türkçe UPPER_SNAKE ile **birebir string** taşınır (çeviri yok —
+`Campaign.Infrastructure/External/AiServiceClient.cs`'e `JsonStringEnumConverter` eklenmesi
+Faz 6'da düzeltilen bir wire-format hatasıydı: converter olmadan .NET enum'ları sayısal
+sıralı değer bekler/üretir, FastAPI'nin string döndürdüğü her yanıt sessizce "AI kapalı"
+fallback'ine düşerdi — teşhisi zor bir bug, bu yüzden burada açıkça not edilir).
+
+| Endpoint | Girdi | Çıktı |
+|---|---|---|
+| `POST /api/v1/ai/recommend` | `{subscriberProfile, campaigns[]}` | `[{campaignId, recommendationScore, conversionProbability}]` |
+| `POST /api/v1/ai/classify` | `{subscriberProfile}` | `{segment, confidence}` |
+| `POST /api/v1/ai/assign` | `{case, candidates[]}` | `[{expertId, score}]` (azalan skora göre sıralı) |
+| `GET /api/v1/ai/metrics/accuracy` | — | `{overall, byCategory: [{segment, accuracy, total}]}` |
+
+**Öneri skoru ayarı (case §4.5):** `recommendationScore = max(0, ham_olasılık − penalty)`.
+`penalty`, `score_adjustments` tablosundan okunur; `offer.responded` (RET) event'i geldikçe
+`+0.05` artar (üst sınır `0.50`) — abone bir kampanya tipini reddettikçe o kombinasyon için
+sonraki önerilerin skoru düşer. `conversionProbability` HAM (ayarlanmamış) olasılığı taşır.
+
+**Atama skoru (`/ai/assign`, Strategy pattern — `app/services/scoring_strategy.py`):**
+
+```
+skor = uzmanlik_eslesme(0/1) * 0.5 + bosluk_orani * 0.3 + performans * 0.2
+```
+
+`bosluk_orani = max(0, 1 − activeCaseCount / 5)` — `5`, Campaign.Application'daki
+`AssignExpertCommandHandler.MaxActiveCasesPerExpert` sabitiyle dokümante edilmiş şekilde
+senkron tutulur (AI bu değeri tel üzerinden almaz, iş kuralı olarak her iki tarafta sabit
+kodludur; değişirse iki dosya birlikte güncellenir). Formül `AssignmentScoringStrategy`
+soyut sınıfı arkasında — A/B testi veya öğrenen bir modelle değiştirilebilir.
+
+## 6. Event Tüketimi (`app/consumers.py`, aio-pika)
+
+RabbitMQ topic exchange `campaigncell.events`, routing key = `event_type` (Core_Principles §8,
+MassTransit `UseRawJsonSerializer()` ile sade JSON, zarf yok):
+
+- `segment.overridden` → `classification_feedback` (idempotent: `case_id` UNIQUE, aynı event
+  iki kez teslim edilirse — RabbitMQ "en az bir kez" garantisi — ikinci kayıt sessizce yutulur).
+- `offer.responded` (yalnız `response == "RET"`) → `score_adjustments.penalty` artırılır;
+  `KABUL` yok sayılır (case §4.5 sadece RET'i şart koşar).
+
+## 7. Graceful Degradation (Core_Principles §3)
+
+Model dosyası yüklenemezse (`ml/model.joblib` yok/bozuk) servis yine `/health` yeşil döner;
+`/recommend`, `/classify`, `/assign` istekleri `503 AI_503_UNAVAILABLE` döner. Campaign
+Service'teki `IAiServiceClient` bunu (herhangi bir hata/timeout ile birlikte) `null` olarak
+yorumlar → kampanya `BELIRSIZ` segment + `ORTA` öncelik ile **yine oluşur**, manuel kuyruğa
+düşer (demo adım 7 sigortası). RabbitMQ bağlantısı kurulamazsa REST uçları etkilenmez —
+yalnızca `classification_feedback`/`score_adjustments` geri besleme döngüsü durur, bu loglanır.
+
+## 8. "Hardcoded Değil" Kanıtı
+
+`tests/test_model_service.py::test_two_different_profiles_yield_different_scores` — yüksek
+değerli (70 GB/ay, 800 TL, 0 şikayet) ve pasif (2 GB/ay, 100 TL, 120 gün hareketsiz) iki
+profilin `EK_PAKET` için farklı ve tutarlı yönde (yüksek değerli > pasif) skor ürettiğini
+doğrular. `test_riskli_kayip_profile_prefers_sadakat_over_tarife_yukseltme` aynı profilin
+kampanya tipine göre de farklı skor verdiğini gösterir. Demo sırasında aynı iki profil canlı
+`curl` ile de gösterilecek (bkz. ana README "Demo Provası").

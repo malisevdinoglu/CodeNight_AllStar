@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using BuildingBlocks.Common;
 using Campaign.Application.External;
 using Microsoft.Extensions.Logging;
@@ -14,10 +15,21 @@ namespace Campaign.Infrastructure.External;
 /// </summary>
 public sealed class AiServiceClient : IAiServiceClient
 {
+    /// <summary>
+    /// JsonStringEnumConverter ZORUNLU: Campaign.Api'nin kendi controller pipeline'ı (Program.cs)
+    /// enum'ları string olarak taşır ("YUKSEK_DEGER" vb. - Core_Principles §4 "çeviri yasak").
+    /// Bu WireOptions AI Service (FastAPI/Pydantic) ile konuşurken AYNI sözleşmeyi kullanmak
+    /// ZORUNDA - converter olmadan System.Text.Json enum'ları sayısal (int) sıralı değer olarak
+    /// serileştirir/bekler; FastAPI tarafı string enum döndürünce deserialize sessizce
+    /// JsonException fırlatır ve try/catch bunu "AI kapalı" ile karıştırır (teşhisi zor sessiz bug).
+    /// </summary>
     private static readonly JsonSerializerOptions WireOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        // Naming policy KASITLI olarak verilmez: enum degerleri C# uye adiyla BIREBIR yazilir
+        // ("YUKSEK_DEGER", "EK_PAKET" vb.) - Core_Principles §4 "enum cevirisi/donusumu yasak".
+        Converters = { new JsonStringEnumConverter(allowIntegerValues: false) },
     };
 
     private readonly HttpClient _httpClient;

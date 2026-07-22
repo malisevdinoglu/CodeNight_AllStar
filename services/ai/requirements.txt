@@ -1,5 +1,4 @@
 # AI Service — Python bağımlılıkları (servis kendi bağımlılıklarını yönetir, database-per-service gibi)
-# FastAPI/SQLAlchemy katmanı eklendikçe bu liste büyüyecek.
 scikit-learn==1.9.0
 pandas==3.0.3
 joblib==1.5.3
@@ -7,3 +6,5 @@ SQLAlchemy==2.0.51
 psycopg[binary]==3.3.4
 fastapi==0.115.6
 uvicorn[standard]==0.32.1
+pydantic==2.10.4
+aio-pika==9.5.5
