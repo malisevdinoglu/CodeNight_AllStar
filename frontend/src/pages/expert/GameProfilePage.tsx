@@ -1,7 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { Award, Trophy } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { BadgeToast, LeaderboardTable, LevelFrame } from '../../components/domain'
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
@@ -13,9 +16,12 @@ import {
 } from '../../components/ui'
 import { useGameProfile, useLeaderboard } from '../../hooks/useGame'
 import { useAuthStore } from '../../stores/auth.store'
+import { useRealtimeStore } from '../../stores/realtime.store'
 
 export function GameProfilePage() {
+  const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
+  const gameHubStatus = useRealtimeStore((state) => state.gameHubStatus)
   const profileQuery = useGameProfile(user?.id)
   const leaderboardQuery = useLeaderboard('weekly')
 
@@ -34,6 +40,16 @@ export function GameProfilePage() {
         title="Profil bulunamadi"
       />
     )
+  }
+
+  const handleMockBadge = () => {
+    toast.custom(
+      <div className="rounded-md border border-slate-200 bg-white p-4 shadow-panel">
+        <BadgeToast badgeCode="SLA_HIZLI" badgeName="SLA Ustasi" />
+      </div>,
+    )
+    queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+    queryClient.invalidateQueries({ queryKey: ['game-profile', user?.id] })
   }
 
   return (
@@ -114,6 +130,23 @@ export function GameProfilePage() {
               <p className="mt-2 text-2xl font-bold text-slate-950">
                 {profileQuery.data.avgRating.toFixed(1)}
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Canli bildirim</CardTitle>
+            <CardDescription>SignalR hub durumu ve mock demo bildirimi.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <Badge tone={gameHubStatus === 'connected' ? 'success' : 'neutral'}>
+                Hub: {gameHubStatus}
+              </Badge>
+              <Button onClick={handleMockBadge} variant="secondary">
+                Rozet bildirimi dene
+              </Button>
             </div>
           </CardContent>
         </Card>

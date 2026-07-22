@@ -5,14 +5,19 @@ import { RequireAuth } from './components/routing/RequireAuth'
 import { RequireRole } from './components/routing/RequireRole'
 import { RoleRedirect } from './components/routing/RoleRedirect'
 import { PhaseOnePage } from './pages/PhaseOnePage'
+import { AuditLogsPage } from './pages/admin/AuditLogsPage'
 import { StaffPage } from './pages/admin/StaffPage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { CaseDetailPage } from './pages/expert/CaseDetailPage'
 import { CreateCampaignPage } from './pages/expert/CreateCampaignPage'
 import { GameProfilePage } from './pages/expert/GameProfilePage'
 import { MyCasesPage } from './pages/expert/MyCasesPage'
+import { MyCampaignsPage } from './pages/subscriber/MyCampaignsPage'
+import { OfferDetailPage } from './pages/subscriber/OfferDetailPage'
 import { OffersPage } from './pages/subscriber/OffersPage'
-import { DashboardPage } from './pages/supervisor/DashboardPage'
+import { CasesPage } from './pages/supervisor/CasesPage'
+import { LazyDashboardPage } from './pages/supervisor/LazyDashboardPage'
+import { QueuePage } from './pages/supervisor/QueuePage'
 
 export const router = createBrowserRouter([
   {
@@ -30,7 +35,11 @@ export const router = createBrowserRouter([
           { path: 'phase-one', element: <PhaseOnePage /> },
           {
             element: <RequireRole allowedRoles={['MUSTERI']} />,
-            children: [{ path: 'offers', element: <OffersPage /> }],
+            children: [
+              { path: 'offers', element: <OffersPage /> },
+              { path: 'offers/:offerId', element: <OfferDetailPage /> },
+              { path: 'my-campaigns', element: <MyCampaignsPage /> },
+            ],
           },
           {
             element: <RequireRole allowedRoles={['PERSONEL']} />,
@@ -43,11 +52,21 @@ export const router = createBrowserRouter([
           },
           {
             element: <RequireRole allowedRoles={['SUPERVIZOR']} />,
-            children: [{ path: 'dashboard', element: <DashboardPage /> }],
+            children: [
+              {
+                path: 'dashboard',
+                element: <LazyDashboardPage />,
+              },
+              { path: 'queue', element: <QueuePage /> },
+              { path: 'supervisor/cases', element: <CasesPage /> },
+            ],
           },
           {
             element: <RequireRole allowedRoles={['ADMIN']} />,
-            children: [{ path: 'admin/staff', element: <StaffPage /> }],
+            children: [
+              { path: 'admin/staff', element: <StaffPage /> },
+              { path: 'admin/audit-logs', element: <AuditLogsPage /> },
+            ],
           },
         ],
       },

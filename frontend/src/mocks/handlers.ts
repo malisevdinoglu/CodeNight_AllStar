@@ -7,6 +7,7 @@ import type {
   CreateCampaignRequest,
   CreateStaffRequest,
   OfferRateRequest,
+  OfferDto,
   OfferResponseRequest,
   SegmentOverrideRequest,
 } from '../api/types'
@@ -63,6 +64,16 @@ function replaceCase(updatedCase: CaseDto) {
   }
 
   return updatedCase
+}
+
+function replaceOffer(updatedOffer: OfferDto) {
+  const index = mockOffers.findIndex((item) => item.id === updatedOffer.id)
+
+  if (index >= 0) {
+    mockOffers[index] = updatedOffer
+  }
+
+  return updatedOffer
 }
 
 export const handlers = [
@@ -179,7 +190,7 @@ export const handlers = [
         return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadi.', 404)
       }
 
-      return ok({ ...offer, status: body.response, canRate: true })
+      return ok(replaceOffer({ ...offer, status: body.response, canRate: true }))
     }
 
     if (path.endsWith('/rate')) {
@@ -195,22 +206,36 @@ export const handlers = [
         return fail('CMP_409_ALREADY_RATED', 'Zaten puanladiniz.', 409)
       }
 
-      return ok({ ...offer, canRate: false, myRating: body.stars })
+      return ok(replaceOffer({ ...offer, canRate: false, myRating: body.stars }))
     }
 
     if (path === '/users') {
       const body = (await request.json()) as CreateStaffRequest
+      const createdAt = new Date().toISOString()
+      const userId = `staff-${Date.now()}`
+      const temporaryPassword = body.password || 'TempPass1'
+      const createdUser = {
+        id: userId,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        role: body.role,
+        expertise: body.expertiseAreas,
+      }
+
+      mockAuditLogs.unshift({
+        userId: 'admin-001',
+        userName: 'Admin Kullanici',
+        actionType: 'USER_CREATE',
+        occurredAt: createdAt,
+        ipAddress: '10.0.0.10',
+        success: true,
+        resourceId: userId,
+      })
 
       return ok(
         {
-          user: {
-            id: `staff-${Date.now()}`,
-            firstName: body.firstName,
-            lastName: body.lastName,
-            role: body.role,
-            expertise: body.expertiseAreas,
-          },
-          temporaryPassword: body.password,
+          user: createdUser,
+          temporaryPassword,
         },
         { status: 201 },
       )
@@ -274,6 +299,17 @@ export const handlers = [
       return ok(mockOffers)
     }
 
+    if (path.startsWith('/offers/')) {
+      const offerId = path.split('/')[2]
+      const offer = mockOffers.find((item) => item.id === offerId)
+
+      if (!offer) {
+        return fail('CMP_404_OFFER_NOT_FOUND', 'Teklif bulunamadi.', 404)
+      }
+
+      return ok(offer)
+    }
+
     if (path === '/cases') {
       const page = Number(url.searchParams.get('page') ?? '1')
       const pageSize = Number(url.searchParams.get('pageSize') ?? '20')
@@ -312,7 +348,13 @@ export const handlers = [
     }
 
     if (path === '/dashboard/summary') {
-      return ok(mockDashboard)
+      return ok({
+        ...mockDashboard,
+        slaBreachedActiveCases: mockCases.filter((item) => item.slaBreached),
+        pendingQueue: mockCases.filter(
+          (item) => item.segment === 'BELIRSIZ' || item.assignedExpertId === null,
+        ),
+      })
     }
 
     if (path === '/game/leaderboard') {
