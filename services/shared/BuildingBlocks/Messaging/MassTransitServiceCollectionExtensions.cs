@@ -60,7 +60,8 @@ public static class MassTransitServiceCollectionExtensions
     public static IServiceCollection AddCampaignCellMassTransit<TDbContext>(
         this IServiceCollection services,
         IConfiguration configuration,
-        Action<IBusRegistrationConfigurator>? configureConsumers = null)
+        Action<IBusRegistrationConfigurator>? configureConsumers = null,
+        Action<IBusRegistrationContext, IRabbitMqBusFactoryConfigurator>? configureRabbitMq = null)
         where TDbContext : DbContext
     {
         services.AddMassTransit(busConfigurator =>
@@ -86,6 +87,16 @@ public static class MassTransitServiceCollectionExtensions
                 });
 
                 cfg.UseRawJsonSerializer();
+
+                // BUG FIX (canli testte bulundu, Faz 10): bu overload'da configureRabbitMq
+                // parametresi hic yoktu, yani bu overload'i kullanan tum PUBLISHER servisler
+                // (Campaign.Api) IntegrationEventTopologyExtensions.ConfigureIntegrationEventTopology
+                // cagirilmadan calisiyordu. Sonuc: yayinlanan TUM event'ler ortak
+                // "campaigncell.events" topic exchange'i yerine MassTransit'in varsayilan
+                // (mesaj tipine ozel) exchange'ine gidiyordu - hicbir tuketici kuyrugu oraya
+                // bagli olmadigindan mesajlar RabbitMQ tarafindan sessizce dusuruluyordu (ne hata
+                // ne dead-letter). point_transactions tablosunun hep bos kalmasinin kok nedeni buydu.
+                configureRabbitMq?.Invoke(context, cfg);
 
                 cfg.ConfigureEndpoints(context);
             });

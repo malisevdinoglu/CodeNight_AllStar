@@ -8,6 +8,7 @@ using Campaign.Api.BackgroundServices;
 using Campaign.Api.Http;
 using Campaign.Application;
 using Campaign.Application.Common;
+using Campaign.Application.Events;
 using Campaign.Infrastructure.Extensions;
 using Campaign.Infrastructure.Persistence;
 using Campaign.Infrastructure.Persistence.Seeding;
@@ -171,7 +172,25 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ---- Event bus + Outbox (Core_Principles §2/§8): DB commit + publish atomik ----
-builder.Services.AddCampaignCellMassTransit<CampaignDbContext>(builder.Configuration);
+// BUG FIX (Faz 10 canli testte bulundu): ConfigureIntegrationEventTopology<TEvent>() cagrilari
+// EKSIKTI - bu yuzden Campaign.Api'nin yayinladigi TUM event'ler ortak "campaigncell.events"
+// topic exchange'i yerine MassTransit'in varsayilan exchange'ine gidiyor, hicbir tuketici
+// (orn. Gamification) onlari hic almiyordu (bkz. MassTransitServiceCollectionExtensions.cs).
+// Campaign'in yayinladigi 9 event turunun HEPSI icin BIR KEZ deklare edilmesi gerekir.
+builder.Services.AddCampaignCellMassTransit<CampaignDbContext>(
+    builder.Configuration,
+    configureRabbitMq: (context, cfg) =>
+    {
+        cfg.ConfigureIntegrationEventTopology<CampaignCreatedEvent>();
+        cfg.ConfigureIntegrationEventTopology<CaseCreatedEvent>();
+        cfg.ConfigureIntegrationEventTopology<CaseAssignedEvent>();
+        cfg.ConfigureIntegrationEventTopology<CaseStatusChangedEvent>();
+        cfg.ConfigureIntegrationEventTopology<CampaignOptimizedEvent>();
+        cfg.ConfigureIntegrationEventTopology<CaseSlaBreachedEvent>();
+        cfg.ConfigureIntegrationEventTopology<SegmentOverriddenEvent>();
+        cfg.ConfigureIntegrationEventTopology<OfferRespondedEvent>();
+        cfg.ConfigureIntegrationEventTopology<OfferRatedEvent>();
+    });
 
 // ---- SLA Worker (Mali_Plan.md: dakikalik BackgroundService) ----
 builder.Services.AddHostedService<SlaSweepBackgroundService>();

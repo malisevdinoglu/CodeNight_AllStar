@@ -61,7 +61,7 @@ export function GameProfilePage() {
               <p className="text-sm font-bold uppercase text-brand-navy">Performans profili</p>
               <h1 className="mt-2 text-3xl font-bold text-slate-950">{profileQuery.data.level}</h1>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Toplam {profileQuery.data.totalPoints} puan - {profileQuery.data.solvedCaseCount}{' '}
+                Toplam {profileQuery.data.totalPoints} puan - {profileQuery.data.completedCaseCount}{' '}
                 vaka tamamlandı
               </p>
             </div>
@@ -108,28 +108,39 @@ export function GameProfilePage() {
         <Card className="border-blue-100 shadow-lg shadow-blue-950/5">
           <CardHeader>
             <CardTitle>Sıralama</CardTitle>
-            <CardDescription>Günlük ve haftalık konum.</CardDescription>
+            <CardDescription>Tüm zamanlar ve haftalık konum.</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Backend'de avgRating alani hic yok (crash sebebiydi); dailyRank de yok, gercek
+                alan allTimeRank. Rank'lar null olabilir (leaderboard'da henuz siralanmamis
+                olabilir, orn. Redis cache'de yoksa) - null-safe render edildi. */}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Günlük</p>
+                <p className="text-xs font-bold uppercase text-slate-500">Tüm zamanlar</p>
                 <p className="mt-2 text-2xl font-bold text-brand-navy">
-                  #{profileQuery.data.dailyRank}
+                  {profileQuery.data.allTimeRank !== null ? `#${profileQuery.data.allTimeRank}` : '—'}
                 </p>
               </div>
               <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
                 <p className="text-xs font-bold uppercase text-slate-500">Haftalık</p>
                 <p className="mt-2 text-2xl font-bold text-brand-navy">
-                  #{profileQuery.data.weeklyRank}
+                  {profileQuery.data.weeklyRank !== null ? `#${profileQuery.data.weeklyRank}` : '—'}
                 </p>
               </div>
             </div>
-            <div className="mt-4 rounded-md border border-blue-100 bg-blue-50/50 p-4">
-              <p className="text-xs font-bold uppercase text-slate-500">Ortalama puanlama</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">
-                {profileQuery.data.avgRating.toFixed(1)}
-              </p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Hızlı tamamlama</p>
+                <p className="mt-2 text-2xl font-bold text-slate-950">
+                  {profileQuery.data.fastCompletionCount}
+                </p>
+              </div>
+              <div className="rounded-md border border-blue-100 bg-blue-50/50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Riskli kayıp kurtarma</p>
+                <p className="mt-2 text-2xl font-bold text-slate-950">
+                  {profileQuery.data.riskliKayipSavedCount}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

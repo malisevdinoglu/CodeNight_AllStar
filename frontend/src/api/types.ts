@@ -171,19 +171,26 @@ export type DashboardSummaryDto = {
 export type LeaderboardEntryDto = {
   rank: number
   expertId: string
-  name: string
+  displayName: string
   points: number
   level: Level
 }
 
+// Gercek backend yaniti (GET /game/me/profile, Gamification.Application.Dtos) ile birebir -
+// onceden burada var olmayan alanlar (avgRating, dailyRank, solvedCaseCount) tanimliydi ve
+// GameProfilePage'de "undefined.toFixed()" crash'ine yol aciyordu.
 export type GameProfileDto = {
+  expertId: string
+  displayName: string
   totalPoints: number
   level: Level
-  badges: { code: string; name: string; earnedAt: string | null }[]
-  dailyRank: number
-  weeklyRank: number
-  solvedCaseCount: number
-  avgRating: number
+  completedCaseCount: number
+  fastCompletionCount: number
+  targetExceededCount: number
+  riskliKayipSavedCount: number
+  weeklyRank: number | null
+  allTimeRank: number | null
+  badges: { code: string; name: string; description: string; earnedAt: string | null }[]
 }
 
 export type CreateStaffRequest = {

@@ -182,23 +182,27 @@ export const mockDashboard: DashboardSummaryDto = {
 }
 
 export const mockLeaderboard: LeaderboardEntryDto[] = [
-  { rank: 1, expertId: 'expert-001', name: 'Osman Erkan', points: 425, level: 'ALTIN' },
-  { rank: 2, expertId: 'expert-002', name: 'Mali Demir', points: 390, level: 'ALTIN' },
-  { rank: 3, expertId: 'expert-003', name: 'Iskender Aksoy', points: 340, level: 'GUMUS' },
+  { rank: 1, expertId: 'expert-001', displayName: 'Osman Erkan', points: 425, level: 'ALTIN' },
+  { rank: 2, expertId: 'expert-002', displayName: 'Mali Demir', points: 390, level: 'ALTIN' },
+  { rank: 3, expertId: 'expert-003', displayName: 'Iskender Aksoy', points: 340, level: 'GUMUS' },
 ]
 
 export const mockGameProfile: GameProfileDto = {
+  expertId: 'expert-001',
+  displayName: 'Osman Erkan',
   totalPoints: 425,
   level: 'ALTIN',
   badges: [
-    { code: 'SLA_HIZLI', name: 'SLA Ustasi', earnedAt: '2026-07-21T14:20:00.000Z' },
-    { code: 'KRITIK_KURTARICI', name: 'Kritik Kurtarici', earnedAt: '2026-07-22T08:45:00.000Z' },
-    { code: 'MUKEMMEL_PUAN', name: 'Mukemmel Puan', earnedAt: null },
+    { code: 'SLA_HIZLI', name: 'SLA Ustasi', description: 'SLA icinde hizli tamamlama', earnedAt: '2026-07-21T14:20:00.000Z' },
+    { code: 'KRITIK_KURTARICI', name: 'Kritik Kurtarici', description: 'Kritik oncelikli vaka kurtarma', earnedAt: '2026-07-22T08:45:00.000Z' },
+    { code: 'MUKEMMEL_PUAN', name: 'Mukemmel Puan', description: 'Yuksek dogruluk', earnedAt: null },
   ],
-  dailyRank: 1,
   weeklyRank: 2,
-  solvedCaseCount: 28,
-  avgRating: 4.6,
+  allTimeRank: 1,
+  completedCaseCount: 28,
+  fastCompletionCount: 9,
+  targetExceededCount: 6,
+  riskliKayipSavedCount: 4,
 }
 
 export const mockAuditLogs: AuditLogDto[] = [

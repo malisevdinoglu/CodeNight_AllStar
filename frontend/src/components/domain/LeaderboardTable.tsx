@@ -9,9 +9,9 @@ const columns: DataTableColumn<LeaderboardEntryDto>[] = [
     render: (item) => <span className="font-bold text-slate-950">#{item.rank}</span>,
   },
   {
-    key: 'name',
+    key: 'displayName',
     header: 'Uzman',
-    render: (item) => <span className="font-semibold text-slate-800">{item.name}</span>,
+    render: (item) => <span className="font-semibold text-slate-800">{item.displayName}</span>,
   },
   {
     key: 'level',
