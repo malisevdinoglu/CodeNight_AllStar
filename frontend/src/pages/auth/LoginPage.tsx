@@ -37,10 +37,13 @@ export function LoginPage() {
   const navigate = useNavigate()
   const setSession = useAuthStore((state) => state.setSession)
   const [mode, setMode] = useState<LoginMode>('staff')
-  const [email, setEmail] = useState('personel@campaigncell.local')
-  const [password, setPassword] = useState('Password1')
-  const [gsmNumber, setGsmNumber] = useState('5321112233')
-  const [otpCode, setOtpCode] = useState('1234')
+  // Not: bilerek bos birakiliyor - onceden buraya mock donemine ait sahte demo
+  // bilgileri (personel@campaigncell.local / Password1) hardcode edilmisti; gercek
+  // backend'e bagli production build'de bu deger gecersiz oldugu icin kafa karistiriyordu.
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [gsmNumber, setGsmNumber] = useState('')
+  const [otpCode, setOtpCode] = useState('')
   const [otpRequested, setOtpRequested] = useState(false)
   const [formErrors, setFormErrors] = useState<string[]>([])
 

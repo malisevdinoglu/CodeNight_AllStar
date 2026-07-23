@@ -5,7 +5,7 @@ export function useGameProfile(expertId: string | undefined) {
   return useQuery({
     enabled: Boolean(expertId),
     queryKey: ['game-profile', expertId],
-    queryFn: () => gameApi.getProfile(expertId ?? ''),
+    queryFn: () => gameApi.getProfile(),
   })
 }
 

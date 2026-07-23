@@ -90,7 +90,10 @@ Seed otomatik çalışır (`docs/SEED_DATA.md`'ye birebir), `docker compose up`'
 | ADMIN | `admin@campaigncell.com` | `Admin.2026!` |
 | SUPERVIZOR | `supervizor@campaigncell.com` | `Super.2026!` |
 | PERSONEL (uzman) | `deniz.karaca@campaigncell.com`, `merve.aksoy@campaigncell.com`, `kaan.erdem@campaigncell.com`, `ece.yildiz@campaigncell.com` | `Uzman.2026!` |
-| MUSTERI | 10 seed abone (OTP akışı) | OTP: `1234` |
+| MUSTERI | 10 seed abone (OTP akışı) — örn. `5321104501` (Ahmet Yılmaz) | OTP: `1234` |
+
+Müşteri girişi 2 adımlıdır: GSM numarasını gir → "Kod Gönder" → açılan alana `1234` yaz → "Giriş Yap".
+Tüm 10 abone numarası: `docs/SEED_DATA.md`.
 
 ## Portlar
 

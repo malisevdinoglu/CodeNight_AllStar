@@ -10,8 +10,8 @@ export const gameApi = {
     return unwrapApiResponse(response.data)
   },
 
-  async getProfile(expertId: string) {
-    const response = await apiClient.get<ApiResponse<GameProfileDto>>(`/game/profile/${expertId}`)
+  async getProfile() {
+    const response = await apiClient.get<ApiResponse<GameProfileDto>>('/game/me/profile')
     return unwrapApiResponse(response.data)
   },
 }

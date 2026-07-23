@@ -151,14 +151,17 @@ export function CaseDetailPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 md:grid-cols-7">
+            {/* 7 sabit kolon (md:grid-cols-7) "Optimize ediliyor"/"Tamamlandı" gibi uzun
+                etiketleri dar sutunlarda tasiriyordu (satir yuksekligi otomatik esitlenmiyor
+                gibi gorunuyordu) - dereceli responsive kolon sayisi + break-words ile duzeltildi. */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
               {stateFlow.map((status) => {
                 const isCurrent = selectedCase.status === status
                 const isAllowed = selectedCase.allowedTransitions.includes(status)
 
                 return (
                     <div
-                      className={`rounded-md border p-3 text-center ${
+                      className={`flex min-h-20 flex-col items-center justify-center rounded-md border p-3 text-center ${
                         isCurrent
                         ? 'border-brand-yellow bg-brand-yellow/20'
                         : isAllowed
@@ -167,9 +170,11 @@ export function CaseDetailPage() {
                       }`}
                       key={status}
                   >
-                    <p className="text-xs font-bold text-slate-700">{statusLabels[status]}</p>
+                    <p className="break-words text-xs font-bold leading-tight text-slate-700">
+                      {statusLabels[status]}
+                    </p>
                     {isCurrent ? (
-                      <CheckCircle2 className="mx-auto mt-2 text-brand-navy" size={18} />
+                      <CheckCircle2 className="mx-auto mt-2 shrink-0 text-brand-navy" size={18} />
                     ) : null}
                   </div>
                 )

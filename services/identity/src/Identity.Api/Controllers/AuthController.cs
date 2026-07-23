@@ -3,6 +3,7 @@ using Identity.Application.Commands.Login;
 using Identity.Application.Commands.Logout;
 using Identity.Application.Commands.RefreshToken;
 using Identity.Application.Commands.RegisterSubscriber;
+using Identity.Application.Commands.RequestOtp;
 using Identity.Application.Commands.VerifyOtp;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +32,15 @@ public sealed class AuthController : ControllerBase
     {
         var result = await _mediator.Send(command, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, ApiResponseFactory.Success(result));
+    }
+
+    /// <summary>Osman.md sozlesmesi: LoginPage'in Musteri akisindaki "Kod Gonder" adimi.</summary>
+    [HttpPost("otp/request")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RequestOtp(RequestOtpCommand command, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+        return Ok(ApiResponseFactory.SuccessEmpty());
     }
 
     [HttpPost("otp/verify")]

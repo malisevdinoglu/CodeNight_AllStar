@@ -31,14 +31,17 @@ npm run lint
 
 ## Demo Hesaplari
 
-Personel, supervisor ve admin girisinde sifre `Password1`.
+Gercek backend seed verisi (bkz. kok `README.md` / `docs/SEED_DATA.md`) - asagidakiler
+`VITE_USE_MOCKS=false` oldugunda (production build, `.env.production`) gecerlidir. Onceden
+burada mock donemine ait sahte `.local` hesaplar ve `Password1` sifresi yaziyordu; bunlar
+gercek backend'de calismiyordu (401), production build'de kafa karistiriyordu - kaldirildi.
 
 | Rol | Giris |
 |---|---|
-| PERSONEL | `personel@campaigncell.local` |
-| SUPERVIZOR | `supervisor@campaigncell.local` |
-| ADMIN | `admin@campaigncell.local` |
-| MUSTERI | GSM `5321112233`, OTP `1234` |
+| PERSONEL | `deniz.karaca@campaigncell.com` / `Uzman.2026!` (+3 diger uzman, bkz. kok README) |
+| SUPERVIZOR | `supervizor@campaigncell.com` / `Super.2026!` |
+| ADMIN | `admin@campaigncell.com` / `Admin.2026!` |
+| MUSTERI | GSM `5321104501` (Ahmet Yilmaz), OTP `1234` - "Kod Gonder" adimi backend'de `POST /auth/otp/request` gerektirir |
 
 ## Rol Rotalari
 

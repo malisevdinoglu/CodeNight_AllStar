@@ -16,10 +16,9 @@ export const authApi = {
   },
 
   async requestOtp(payload: OtpRequest) {
-    const response = await apiClient.post<ApiResponse<{ expiresInSeconds: number }>>(
-      '/auth/otp/request',
-      payload,
-    )
+    // Backend OTP'yi simule ediyor (sabit "1234", gercek SMS/expiry takibi yok) - yanit
+    // ApiResponseFactory.SuccessEmpty() ile data:null doner.
+    const response = await apiClient.post<ApiResponse<null>>('/auth/otp/request', payload)
     return unwrapApiResponse(response.data)
   },
 
